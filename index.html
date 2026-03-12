@@ -2,313 +2,367 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <!-- 适配移动端 -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>我的个人主页</title>
+    <title>TUYE - 个人主页</title>
     <style>
-        /* 全局样式重置 */
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;700;900&family=Playfair+Display:wght@900&display=swap');
+        
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: "Microsoft YaHei", sans-serif;
         }
 
-        /* 页面背景与整体布局 */
         body {
-            background-color: #f5f5f5;
-            color: #333;
-            line-height: 1.6;
-        }
-
-        /* 导航栏样式 */
-        nav {
-            background-color: #2c3e50;
-            padding: 1rem 5%;
-            position: sticky;
-            top: 0;
-            z-index: 100;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-        }
-
-        .nav-container {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .logo {
-            color: white;
-            font-size: 1.5rem;
-            font-weight: bold;
-        }
-
-        .nav-links {
-            display: flex;
-            list-style: none;
-        }
-
-        .nav-links li {
-            margin-left: 2rem;
-        }
-
-        .nav-links a {
-            color: white;
-            text-decoration: none;
-            transition: color 0.3s;
-        }
-
-        .nav-links a:hover {
-            color: #3498db;
-        }
-
-        /* 个人简介区域 */
-        .hero {
-            padding: 4rem 5%;
-            display: flex;
-            flex-wrap: wrap;
-            align-items: center;
-            justify-content: space-between;
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-
-        .hero-text {
-            flex: 1;
-            min-width: 300px;
-            margin-right: 2rem;
-        }
-
-        .hero-text h1 {
-            font-size: 2.5rem;
-            margin-bottom: 1rem;
-            color: #2c3e50;
-        }
-
-        .hero-text p {
-            font-size: 1.1rem;
-            margin-bottom: 2rem;
-            color: #666;
-        }
-
-        .btn {
-            display: inline-block;
-            background-color: #3498db;
-            color: white;
-            padding: 0.8rem 2rem;
-            border-radius: 5px;
-            text-decoration: none;
-            transition: background-color 0.3s;
-        }
-
-        .btn:hover {
-            background-color: #2980b9;
-        }
-
-        .hero-img {
-            flex: 1;
-            min-width: 300px;
-            text-align: center;
-        }
-
-        .hero-img img {
-            width: 250px;
-            height: 250px;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 5px solid white;
-            box-shadow: 0 0 15px rgba(0,0,0,0.1);
-        }
-
-        /* 技能展示区域 */
-        .skills {
-            padding: 4rem 5%;
-            background-color: white;
-            max-width: 1200px;
-            margin: 2rem auto;
-            border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-        }
-
-        .skills h2 {
-            text-align: center;
-            font-size: 2rem;
-            margin-bottom: 3rem;
-            color: #2c3e50;
-        }
-
-        .skills-container {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 2rem;
-        }
-
-        .skill-card {
-            text-align: center;
-            padding: 2rem 1rem;
-            background-color: #f9f9f9;
-            border-radius: 8px;
-            transition: transform 0.3s;
-        }
-
-        .skill-card:hover {
-            transform: translateY(-5px);
-        }
-
-        .skill-card i {
-            font-size: 3rem;
-            color: #3498db;
-            margin-bottom: 1rem;
-        }
-
-        .skill-card h3 {
-            font-size: 1.2rem;
-            margin-bottom: 0.5rem;
-        }
-
-        /* 联系方式区域 */
-        .contact {
-            padding: 4rem 5%;
-            text-align: center;
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-
-        .contact h2 {
-            font-size: 2rem;
-            margin-bottom: 2rem;
-            color: #2c3e50;
-        }
-
-        .contact-links {
+            font-family: 'Noto Sans SC', sans-serif;
+            background-color: #f0f0f0;
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20"><path d="M0 0h20v20H0V0zm2 2v16h16V2H2z" fill="none" stroke="%23e0e0e0" stroke-width="0.5"/></svg>');
+            background-size: 40px 40px;
             display: flex;
             justify-content: center;
-            flex-wrap: wrap;
-            gap: 2rem;
-        }
-
-        .contact-links a {
-            display: inline-flex;
             align-items: center;
-            color: #333;
-            text-decoration: none;
-            font-size: 1.1rem;
-            transition: color 0.3s;
+            min-height: 100vh;
+            padding: 20px;
         }
 
-        .contact-links a:hover {
-            color: #3498db;
+        .card {
+            width: 100%;
+            max-width: 1200px;
+            height: 90vh;
+            max-height: 800px;
+            background: #f8f8f8;
+            border-radius: 16px;
+            border: 1px solid #e0e0e0;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            position: relative;
+            overflow: hidden;
+            animation: cardFadeIn 1s ease-out;
         }
 
-        .contact-links i {
-            margin-right: 0.5rem;
-            font-size: 1.5rem;
+        @keyframes cardFadeIn {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
-        /* 页脚样式 */
-        footer {
-            background-color: #2c3e50;
-            color: white;
-            text-align: center;
-            padding: 2rem;
-            margin-top: 4rem;
+        .bg-circle {
+            position: absolute;
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, #e6c890 0%, #d4b880 100%);
+            border-radius: 50%;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            opacity: 0.3;
+            z-index: 0;
+            animation: circlePulse 8s ease-in-out infinite;
         }
 
-        /* 响应式适配（手机端） */
-        @media (max-width: 768px) {
-            .nav-links {
-                display: none;
-            }
+        @keyframes circlePulse {
+            0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.3; }
+            50% { transform: translate(-50%, -50%) scale(1.05); opacity: 0.4; }
+        }
 
-            .hero {
-                padding: 2rem 5%;
-                text-align: center;
-            }
+        .title-large {
+            position: absolute;
+            top: 40px;
+            left: 60px;
+            font-family: 'Playfair Display', serif;
+            font-size: 18vw;
+            font-weight: 900;
+            color: #222;
+            letter-spacing: -0.05em;
+            line-height: 0.8;
+            z-index: 1;
+            opacity: 0.15;
+            animation: titleSlideIn 1.2s ease-out;
+        }
 
-            .hero-text {
-                margin-right: 0;
-                margin-bottom: 2rem;
-            }
+        @keyframes titleSlideIn {
+            from { transform: translateX(-50px); opacity: 0; }
+            to { transform: translateX(0); opacity: 0.15; }
+        }
 
-            .skills {
-                padding: 2rem 5%;
-            }
+        .title-handwritten {
+            position: absolute;
+            top: 120px;
+            left: 200px;
+            font-family: 'Playfair Display', serif;
+            font-size: 8vw;
+            font-style: italic;
+            color: #999;
+            opacity: 0.2;
+            z-index: 2;
+            transform: rotate(-5deg);
+            animation: handwrittenFadeIn 1.5s ease-out;
+        }
+
+        @keyframes handwrittenFadeIn {
+            from { opacity: 0; transform: rotate(-10deg); }
+            to { opacity: 0.2; transform: rotate(-5deg); }
+        }
+
+        .character-container {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 3;
+            width: 60%;
+            height: 80%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .character-img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            filter: drop-shadow(0 10px 20px rgba(0,0,0,0.15));
+            animation: characterFloat 6s ease-in-out infinite;
+        }
+
+        @keyframes characterFloat {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .info-left {
+            position: absolute;
+            left: 40px;
+            bottom: 60px;
+            z-index: 4;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .info-block {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .info-label {
+            background: #222;
+            color: #fff;
+            padding: 4px 12px;
+            font-size: 14px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            display: inline-block;
+            width: fit-content;
+            animation: labelSlideIn 1s ease-out backwards;
+        }
+
+        .info-label:nth-child(1) { animation-delay: 0.2s; }
+        .info-label:nth-child(2) { animation-delay: 0.4s; }
+        .info-label:nth-child(3) { animation-delay: 0.6s; }
+
+        @keyframes labelSlideIn {
+            from { transform: translateX(-30px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        .info-value {
+            font-size: 32px;
+            font-weight: 900;
+            color: #222;
+            padding-left: 8px;
+            border-left: 4px solid #d4b880;
+            animation: valueFadeIn 1s ease-out backwards;
+        }
+
+        .info-value:nth-child(1) { animation-delay: 0.3s; }
+        .info-value:nth-child(2) { animation-delay: 0.5s; }
+        .info-value:nth-child(3) { animation-delay: 0.7s; }
+
+        @keyframes valueFadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .info-right {
+            position: absolute;
+            right: 40px;
+            bottom: 60px;
+            z-index: 4;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            align-items: flex-end;
+        }
+
+        .info-right .info-block {
+            align-items: flex-end;
+        }
+
+        .info-right .info-label {
+            background: transparent;
+            color: #666;
+            font-size: 12px;
+            padding: 0;
+            letter-spacing: 2px;
+        }
+
+        .info-right .info-value {
+            font-size: 24px;
+            border: none;
+            padding: 0;
+            font-weight: 700;
+        }
+
+        .barcode {
+            position: absolute;
+            top: 40px;
+            right: 40px;
+            z-index: 4;
+            width: 120px;
+            height: 60px;
+            background: repeating-linear-gradient(
+                90deg,
+                #000,
+                #000 2px,
+                transparent 2px,
+                transparent 6px
+            );
+            opacity: 0.7;
+            animation: barcodeFadeIn 1s ease-out backwards;
+        }
+
+        @keyframes barcodeFadeIn {
+            from { opacity: 0; transform: scaleX(0.8); }
+            to { opacity: 0.7; transform: scaleX(1); }
+        }
+
+        .number-tag {
+            position: absolute;
+            top: 20px;
+            left: 40px;
+            z-index: 4;
+            font-size: 18px;
+            font-weight: 900;
+            color: #222;
+            letter-spacing: 2px;
+            animation: tagSlideIn 1s ease-out backwards;
+        }
+
+        @keyframes tagSlideIn {
+            from { transform: translateY(-20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .number-tag-right {
+            top: 20px;
+            left: auto;
+            right: 40px;
+        }
+
+        .silhouette {
+            position: absolute;
+            right: 60px;
+            bottom: 120px;
+            z-index: 3;
+            width: 80px;
+            height: 120px;
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 150"><path fill="%23222" d="M70,20 C75,15 80,20 80,25 C80,30 75,35 70,40 L65,60 L75,70 L70,90 L60,85 L55,100 L50,95 L45,110 L40,105 L35,120 L30,115 L25,130 L20,125 L15,140 L10,135 L5,150 L10,145 L15,130 L20,135 L25,120 L30,125 L35,110 L40,115 L45,100 L50,105 L55,90 L60,95 L65,80 L70,85 L75,70 L80,75 L85,60 L80,55 L75,40 L80,35 L85,20 Z"/></svg>') no-repeat center;
+            background-size: contain;
+            opacity: 0.8;
+            animation: silhouetteFadeIn 1.2s ease-out backwards;
+        }
+
+        @keyframes silhouetteFadeIn {
+            from { opacity: 0; transform: scale(0.8); }
+            to { opacity: 0.8; transform: scale(1); }
+        }
+
+        .stripes {
+            position: absolute;
+            right: 40px;
+            bottom: 40px;
+            z-index: 3;
+            width: 60px;
+            height: 40px;
+            background: repeating-linear-gradient(
+                -45deg,
+                #222,
+                #222 4px,
+                transparent 4px,
+                transparent 8px
+            );
+            opacity: 0.7;
+            animation: stripesFadeIn 1.4s ease-out backwards;
+        }
+
+        @keyframes stripesFadeIn {
+            from { opacity: 0; transform: rotate(-10deg); }
+            to { opacity: 0.7; transform: rotate(0); }
+        }
+
+        .watermark {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 12px;
+            color: #aaa;
+            letter-spacing: 4px;
+            z-index: 2;
+            animation: watermarkFadeIn 2s ease-out backwards;
+        }
+
+        @keyframes watermarkFadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
         }
     </style>
-    <!-- 引入图标库 -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
-    <!-- 导航栏 -->
-    <nav>
-        <div class="nav-container">
-            <div class="logo">我的个人主页</div>
-            <ul class="nav-links">
-                <li><a href="#home">首页</a></li>
-                <li><a href="#skills">技能</a></li>
-                <li><a href="#contact">联系我</a></li>
-            </ul>
+    <div class="card">
+        <div class="bg-circle"></div>
+        <div class="title-large">TUYE</div>
+        <div class="title-handwritten">Arknights</div>
+        
+        <div class="character-container">
+            <img src="https://i0.hdslb.com/bfs/album/20250415/1b3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a.png" alt="图耶" class="character-img">
         </div>
-    </nav>
 
-    <!-- 个人简介区域 -->
-    <section id="home" class="hero">
-        <div class="hero-text">
-            <h1>你好，我是 XXX</h1>
-            <p>一名热爱编程的开发者 / 设计师 / 学生（根据自己的身份修改）<br>
-               专注于 Web 开发 / 前端开发 / Python 编程（修改成自己的方向），喜欢探索新技术，乐于分享学习心得。</p>
-            <a href="#contact" class="btn">联系我</a>
-        </div>
-        <div class="hero-img">
-            <!-- 替换成自己的头像链接，本地图片直接写路径即可 -->
-            <img src="https://via.placeholder.com/250" alt="个人头像">
-        </div>
-    </section>
+        <div class="number-tag">#158</div>
+        <div class="number-tag number-tag-right">#158<br>#415</div>
 
-    <!-- 技能展示区域 -->
-    <section id="skills" class="skills">
-        <h2>我的技能</h2>
-        <div class="skills-container">
-            <!-- 技能卡片1 -->
-            <div class="skill-card">
-                <i class="fab fa-html5"></i>
-                <h3>HTML5</h3>
-                <p>熟练使用HTML5搭建网页结构</p>
+        <div class="barcode"></div>
+
+        <div class="info-left">
+            <div class="info-block">
+                <div class="info-label">ILLUST</div>
+                <div class="info-value">aZLing4</div>
             </div>
-            <!-- 技能卡片2 -->
-            <div class="skill-card">
-                <i class="fab fa-css3-alt"></i>
-                <h3>CSS3</h3>
-                <p>掌握CSS3样式与响应式布局</p>
+            <div class="info-block">
+                <div class="info-label">图耶 配音CV</div>
+                <div class="info-value">中野彩麻</div>
             </div>
-            <!-- 技能卡片3 -->
-            <div class="skill-card">
-                <i class="fab fa-js"></i>
-                <h3>JavaScript</h3>
-                <p>基础JavaScript交互开发</p>
-            </div>
-            <!-- 技能卡片4 -->
-            <div class="skill-card">
-                <i class="fab fa-python"></i>
-                <h3>Python</h3>
-                <p>Python基础编程与脚本开发</p>
+            <div class="info-block">
+                <div class="info-label">治疗单位</div>
+                <div class="info-value">远程位</div>
             </div>
         </div>
-    </section>
 
-    <!-- 联系方式区域 -->
-    <section id="contact" class="contact">
-        <h2>联系方式</h2>
-        <div class="contact-links">
-            <a href="mailto:your-email@example.com"><i class="fas fa-envelope"></i> your-email@example.com</a>
-            <a href="https://github.com/your-github" target="_blank"><i class="fab fa-github"></i> GitHub</a>
-            <a href="tel:13800138000"><i class="fas fa-phone"></i> 13800138000</a>
+        <div class="info-right">
+            <div class="info-block">
+                <div class="info-label">MASTERY</div>
+                <div class="info-value">DESERT GUIDE</div>
+            </div>
+            <div class="info-block">
+                <div class="info-label">OCCUPATION</div>
+                <div class="info-value">PHYSICIAN</div>
+            </div>
         </div>
-    </section>
 
-    <!-- 页脚 -->
-    <footer>
-        <p>&copy; 2026 我的个人主页 | 保留所有权利</p>
-    </footer>
+        <div class="silhouette"></div>
+        <div class="stripes"></div>
+
+        <div class="watermark">ARKNIGHTS</div>
+    </div>
 </body>
 </html>
