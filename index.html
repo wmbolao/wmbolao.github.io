@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TUYE - 个人主页</title>
+    <title>TUYE - 明日方舟液态玻璃卡片</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;700;900&family=Playfair+Display:wght@900&display=swap');
         
@@ -15,324 +15,684 @@
 
         body {
             font-family: 'Noto Sans SC', sans-serif;
-            background-color: #f0f0f0;
-            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20"><path d="M0 0h20v20H0V0zm2 2v16h16V2H2z" fill="none" stroke="%23e0e0e0" stroke-width="0.5"/></svg>');
-            background-size: 40px 40px;
+            /* 菱形点状纹理背景 */
+            background: linear-gradient(135deg, #f5f5f5 0%, #f0f0f0 100%);
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16"><rect width="16" height="16" fill="none"/><path d="M8 4L10 8L8 12L6 8Z" fill="%23e8e8e8" opacity="0.8"/><path d="M4 8L8 12L12 8L8 4Z" fill="%23e8e8e8" opacity="0.6"/></svg>');
+            background-size: 32px 32px;
+            background-position: 0 0;
             display: flex;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
             padding: 20px;
+            cursor: default;
+            perspective: 1000px;
+            overflow: hidden;
         }
 
+        /* 背景网格辅助线 */
+        .bg-grid {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-image: 
+                linear-gradient(to right, rgba(0,0,0,0.03) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(0,0,0,0.03) 1px, transparent 1px);
+            background-size: 80px 80px;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        /* 背景定位圆点 */
+        .bg-dots {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 0;
+            pointer-events: none;
+        }
+        .bg-dot {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: rgba(0,0,0,0.6);
+            transform: translate(-50%, -50%);
+        }
+        .bg-dot.tl { top: 20%; left: 10%; }
+        .bg-dot.tr { top: 20%; right: 10%; }
+        .bg-dot.bl { bottom: 20%; left: 10%; }
+        .bg-dot.br { bottom: 20%; right: 10%; }
+        .bg-dot.center { top: 50%; left: 50%; width: 4px; height: 4px; }
+        .bg-dot.sub { top: 50%; left: 50%; width: 2px; height: 2px; margin-left: 15px; margin-top: -8px; }
+
+        /* ========== 液态玻璃核心样式（修改半透明质感） ========== */
         .card {
             width: 100%;
             max-width: 1200px;
             height: 90vh;
             max-height: 800px;
-            background: #f8f8f8;
-            border-radius: 16px;
-            border: 1px solid #e0e0e0;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            /* 液态玻璃基础：调整透明度为半透明 */
+            background: linear-gradient(145deg, 
+                rgba(255, 255, 255, 0.65) 0%,  /* 降低不透明度到0.65 */
+                rgba(255, 255, 255, 0.6) 50%,   /* 中间层更透明 */
+                rgba(255, 255, 255, 0.62) 100%);/* 轻微调整渐变 */
+            /* 液态模糊+折射效果 */
+            backdrop-filter: blur(20px) saturate(110%); /* 降低模糊度增强通透感 */
+            -webkit-backdrop-filter: blur(20px) saturate(110%);
+            /* 液态边框：调整边框透明度增强半透明感 */
+            border: 1.5px solid rgba(255, 255, 255, 0.85);
+            border-radius: 24px;
+            box-shadow: 
+                /* 内层高光：降低强度适配半透明 */
+                0 0 0 1px rgba(255, 255, 255, 0.6) inset,
+                0 0 15px rgba(255, 255, 255, 0.4) inset,
+                /* 外层柔光：降低强度 */
+                0 8px 32px rgba(255, 255, 255, 0.3),
+                /* 环境阴影：增强立体感 */
+                0 4px 20px rgba(0, 0, 0, 0.06),
+                /* 底部投影：降低强度 */
+                0 10px 40px rgba(0, 0, 0, 0.04);
             position: relative;
             overflow: hidden;
-            animation: cardFadeIn 1s ease-out;
+            animation: cardFadeIn 1.2s ease-out;
+            transition: all 0.6s cubic-bezier(0.23, 1, 0.32, 1);
+            z-index: 1;
+            /* 液态变形基础 */
+            transform-origin: center center;
+        }
+
+        /* 液态玻璃内层流动纹理 */
+        .card::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            /* 细微网点+流动渐变 */
+            background-image: 
+                url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="8" height="8" viewBox="0 0 8 8"><circle cx="4" cy="4" r="0.3" fill="%23000" opacity="0.05"/></svg>'),
+                linear-gradient(135deg, 
+                    transparent 0%, 
+                    rgba(255, 255, 255, 0.05) 50%, 
+                    transparent 100%);
+            background-size: 16px 16px, 200% 200%;
+            opacity: 0.8;
+            z-index: -1;
+            pointer-events: none;
+            /* 缓慢流动动画 */
+            animation: liquidFlow 15s ease-in-out infinite;
+        }
+
+        /* 液态玻璃边缘高光 */
+        .card::after {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            /* 模拟玻璃边缘的弧形高光（降低强度适配半透明） */
+            background: radial-gradient(circle at var(--x, 50%) var(--y, 50%), 
+                rgba(255, 255, 255, 0.3) 0%,  /* 降低高光强度 */
+                transparent 60%);
+            pointer-events: none;
+            border-radius: 24px;
+            z-index: 1;
+            transition: background-position 0.2s ease;
+        }
+
+        /* 鼠标悬浮：液态玻璃变形+高光增强 */
+        .card:hover {
+            box-shadow: 
+                0 0 0 1px rgba(255, 255, 255, 0.9) inset,
+                0 0 25px rgba(255, 255, 255, 0.6) inset,
+                0 12px 40px rgba(255, 255, 255, 0.45),
+                0 6px 25px rgba(0, 0, 0, 0.09),
+                0 15px 50px rgba(0, 0, 0, 0.06);
+            /* 轻微液态变形 */
+            transform: translateY(-5px) scale(1.005);
+        }
+
+        /* 液态流动动画 */
+        @keyframes liquidFlow {
+            0%, 100% { background-position: 0% 0%; }
+            25% { background-position: 100% 100%; }
+            50% { background-position: 100% 0%; }
+            75% { background-position: 0% 100%; }
         }
 
         @keyframes cardFadeIn {
-            from { opacity: 0; transform: translateY(30px); }
-            to { opacity: 1; transform: translateY(0); }
+            from { opacity: 0; transform: translateY(30px) scale(0.98); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
         }
 
+        /* 液态光斑：更贴合液态玻璃的反光（降低强度） */
+        .mouse-light {
+            position: absolute;
+            width: 500px;
+            height: 500px;
+            background: radial-gradient(circle, 
+                rgba(212, 184, 128, 0.18) 0%,  /* 降低光斑强度 */
+                rgba(212, 184, 128, 0.04) 70%, 
+                transparent 90%);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 2;
+            transition: opacity 0.3s ease, transform 0.4s ease;
+            opacity: 0;
+            filter: blur(20px);
+        }
+        .card:hover .mouse-light { 
+            opacity: 1;
+            transform: scale(1.1);
+        }
+
+        /* 暖金背景圆：适配液态玻璃折射（降低不透明度） */
         .bg-circle {
             position: absolute;
-            width: 600px;
-            height: 600px;
-            background: radial-gradient(circle, #e6c890 0%, #d4b880 100%);
+            width: 700px;
+            height: 700px;
+            background: radial-gradient(circle, #e9d098 0%, #d4b880 60%, #c9a868 100%);
             border-radius: 50%;
+            top: 45%;
+            left: 55%;
+            transform: translate(-50%, -50%);
+            opacity: 0.18; /* 降低背景圆不透明度 */
+            z-index: 0;
+            animation: circlePulse 12s ease-in-out infinite;
+            filter: blur(10px);
+            /* 液态折射效果 */
+            mix-blend-mode: soft-light;
+        }
+        @keyframes circlePulse {
+            0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.18; }
+            50% { transform: translate(-50%, -50%) scale(1.1); opacity: 0.22; }
+        }
+
+        /* 巨型TUYE文字 */
+        .title-large {
+            position: absolute;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            opacity: 0.3;
-            z-index: 0;
-            animation: circlePulse 8s ease-in-out infinite;
-        }
-
-        @keyframes circlePulse {
-            0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.3; }
-            50% { transform: translate(-50%, -50%) scale(1.05); opacity: 0.4; }
-        }
-
-        .title-large {
-            position: absolute;
-            top: 40px;
-            left: 60px;
             font-family: 'Playfair Display', serif;
-            font-size: 18vw;
+            font-size: 28vw;
             font-weight: 900;
             color: #222;
-            letter-spacing: -0.05em;
-            line-height: 0.8;
+            letter-spacing: -0.08em;
+            line-height: 0.7;
             z-index: 1;
-            opacity: 0.15;
-            animation: titleSlideIn 1.2s ease-out;
+            opacity: 0.12; /* 降低文字透明度适配半透明玻璃 */
+            animation: titleSlideIn 1.5s ease-out;
+            transition: opacity 0.4s ease;
+            pointer-events: none;
+            /* 玻璃折射效果 */
+            mix-blend-mode: multiply;
         }
-
+        .title-large:hover { opacity: 0.18; }
         @keyframes titleSlideIn {
-            from { transform: translateX(-50px); opacity: 0; }
-            to { transform: translateX(0); opacity: 0.15; }
+            from { transform: translate(-50%, -50%) scale(0.95); opacity: 0; }
+            to { transform: translate(-50%, -50%) scale(1); opacity: 0.12; }
         }
 
+        /* 手写体Arknights */
         .title-handwritten {
             position: absolute;
-            top: 120px;
-            left: 200px;
+            top: 38%;
+            left: 52%;
             font-family: 'Playfair Display', serif;
-            font-size: 8vw;
+            font-size: 9vw;
             font-style: italic;
-            color: #999;
-            opacity: 0.2;
+            color: #888;
+            opacity: 0.15; /* 降低文字透明度 */
             z-index: 2;
-            transform: rotate(-5deg);
-            animation: handwrittenFadeIn 1.5s ease-out;
+            transform: rotate(-8deg) translate(-50%, -50%);
+            animation: handwrittenFadeIn 1.8s ease-out;
+            transition: all 0.4s ease;
+            pointer-events: none;
+            mix-blend-mode: multiply;
         }
-
+        .title-handwritten:hover {
+            opacity: 0.22;
+            transform: rotate(-6deg) translate(-50%, -50%) scale(1.02);
+        }
         @keyframes handwrittenFadeIn {
-            from { opacity: 0; transform: rotate(-10deg); }
-            to { opacity: 0.2; transform: rotate(-5deg); }
+            from { opacity: 0; transform: rotate(-12deg) translate(-50%, -50%) scale(0.9); }
+            to { opacity: 0.15; transform: rotate(-8deg) translate(-50%, -50%) scale(1); }
         }
 
+        /* 角色图片容器（调整尺寸适配新图片） */
         .character-container {
             position: absolute;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
             z-index: 3;
-            width: 60%;
-            height: 80%;
+            width: 55%; /* 缩小容器宽度，让图片显示更适中 */
+            height: 75%; /* 缩小容器高度 */
             display: flex;
             justify-content: center;
             align-items: center;
+            perspective: 1500px;
         }
-
         .character-img {
             max-width: 100%;
             max-height: 100%;
             object-fit: contain;
-            filter: drop-shadow(0 10px 20px rgba(0,0,0,0.15));
-            animation: characterFloat 6s ease-in-out infinite;
+            filter: drop-shadow(0 15px 30px rgba(0,0,0,0.15)); /* 降低阴影强度适配半透明 */
+            animation: characterFloat 10s ease-in-out infinite;
+            transition: transform 0.3s cubic-bezier(0.23, 1, 0.32, 1);
         }
-
         @keyframes characterFloat {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-10px); }
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            25% { transform: translateY(-10px) rotate(0.8deg); }
+            50% { transform: translateY(0) rotate(0deg); }
+            75% { transform: translateY(-10px) rotate(-0.8deg); }
         }
 
+        /* 左侧信息区 */
         .info-left {
             position: absolute;
-            left: 40px;
-            bottom: 60px;
-            z-index: 4;
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
-        }
-
-        .info-block {
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-        }
-
-        .info-label {
-            background: #222;
-            color: #fff;
-            padding: 4px 12px;
-            font-size: 14px;
-            font-weight: 700;
-            letter-spacing: 1px;
-            display: inline-block;
-            width: fit-content;
-            animation: labelSlideIn 1s ease-out backwards;
-        }
-
-        .info-label:nth-child(1) { animation-delay: 0.2s; }
-        .info-label:nth-child(2) { animation-delay: 0.4s; }
-        .info-label:nth-child(3) { animation-delay: 0.6s; }
-
-        @keyframes labelSlideIn {
-            from { transform: translateX(-30px); opacity: 0; }
-            to { transform: translateX(0); opacity: 1; }
-        }
-
-        .info-value {
-            font-size: 32px;
-            font-weight: 900;
-            color: #222;
-            padding-left: 8px;
-            border-left: 4px solid #d4b880;
-            animation: valueFadeIn 1s ease-out backwards;
-        }
-
-        .info-value:nth-child(1) { animation-delay: 0.3s; }
-        .info-value:nth-child(2) { animation-delay: 0.5s; }
-        .info-value:nth-child(3) { animation-delay: 0.7s; }
-
-        @keyframes valueFadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .info-right {
-            position: absolute;
-            right: 40px;
-            bottom: 60px;
+            left: 50px;
+            bottom: 70px;
             z-index: 4;
             display: flex;
             flex-direction: column;
             gap: 20px;
-            align-items: flex-end;
+        }
+        .info-block {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            transition: transform 0.3s ease;
+        }
+        .info-block:hover { transform: translateX(8px); }
+
+        .info-label {
+            background: #1a1a1a;
+            color: #fff;
+            padding: 6px 16px;
+            font-size: 14px;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            display: inline-block;
+            width: fit-content;
+            border-radius: 2px;
+            animation: labelSlideIn 1s ease-out backwards;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+        }
+        .info-block:hover .info-label {
+            background-color: #d4b880;
+            transform: scale(1.03);
+            box-shadow: 0 2px 8px rgba(212, 184, 128, 0.3);
+        }
+        .info-label:nth-child(1) { animation-delay: 0.2s; }
+        .info-label:nth-child(2) { animation-delay: 0.4s; }
+        .info-label:nth-child(3) { animation-delay: 0.6s; }
+        @keyframes labelSlideIn {
+            from { transform: translateX(-30px) scale(0.9); opacity: 0; }
+            to { transform: translateX(0) scale(1); opacity: 1; }
         }
 
-        .info-right .info-block {
-            align-items: flex-end;
+        .info-value {
+            font-size: 36px;
+            font-weight: 900;
+            color: #1a1a1a;
+            padding-left: 12px;
+            border-left: 4px solid #d4b880;
+            animation: valueFadeIn 1s ease-out backwards;
+            transition: all 0.3s ease;
+        }
+        .info-block:hover .info-value {
+            border-color: #c9a868;
+            color: #000;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        }
+        .info-value:nth-child(1) { animation-delay: 0.3s; }
+        .info-value:nth-child(2) { animation-delay: 0.5s; }
+        .info-value:nth-child(3) { animation-delay: 0.7s; }
+        @keyframes valueFadeIn {
+            from { opacity: 0; transform: translateY(10px) scale(0.95); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
         }
 
+        /* 右侧信息区 */
+        .info-right {
+            position: absolute;
+            right: 50px;
+            bottom: 70px;
+            z-index: 4;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+            align-items: flex-end;
+        }
+        .info-right .info-block { align-items: flex-end; }
         .info-right .info-label {
             background: transparent;
-            color: #666;
+            color: #555;
             font-size: 12px;
             padding: 0;
-            letter-spacing: 2px;
+            letter-spacing: 3px;
+            margin-bottom: 4px;
         }
-
+        .info-right .info-block:hover .info-label {
+            color: #d4b880;
+            background: transparent;
+            transform: none;
+        }
         .info-right .info-value {
-            font-size: 24px;
+            font-size: 28px;
             border: none;
             padding: 0;
-            font-weight: 700;
+            font-weight: 800;
+            letter-spacing: 1px;
+        }
+        .info-right .info-block:hover .info-value {
+            color: #c9a868;
+            transform: scale(1.05);
+            border: none;
         }
 
+        /* 条形码 */
         .barcode {
             position: absolute;
-            top: 40px;
-            right: 40px;
+            top: 50px;
+            right: 50px;
             z-index: 4;
-            width: 120px;
-            height: 60px;
+            width: 140px;
+            height: 70px;
             background: repeating-linear-gradient(
                 90deg,
                 #000,
                 #000 2px,
                 transparent 2px,
-                transparent 6px
+                transparent 7px
             );
-            opacity: 0.7;
+            opacity: 0.65; /* 降低条形码透明度 */
+            border-radius: 2px;
             animation: barcodeFadeIn 1s ease-out backwards;
+            transition: all 0.4s ease;
+        }
+        .barcode:hover {
+            opacity: 1;
+            transform: scaleY(1.1) scaleX(1.03);
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+        }
+        @keyframes barcodeFadeIn {
+            from { opacity: 0; transform: scaleX(0.8) scaleY(0.9); }
+            to { opacity: 0.65; transform: scaleX(1) scaleY(1); }
         }
 
-        @keyframes barcodeFadeIn {
+        /* 左上角条形码补充 */
+        .barcode-left {
+            top: 50px;
+            left: 50px;
+            right: auto;
+            width: 60px;
+            height: 120px;
+            background: repeating-linear-gradient(
+                90deg,
+                #000,
+                #000 1.5px,
+                transparent 1.5px,
+                transparent 5px
+            );
+        }
+
+        /* 数字标签 */
+        .number-tag {
+            position: absolute;
+            top: 30px;
+            left: 50px;
+            z-index: 4;
+            font-size: 20px;
+            font-weight: 900;
+            color: #1a1a1a;
+            letter-spacing: 3px;
+            animation: tagSlideIn 1s ease-out backwards;
+            transition: all 0.3s ease;
+        }
+        .number-tag:hover {
+            color: #d4b880;
+            transform: scale(1.08);
+            text-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        @keyframes tagSlideIn {
+            from { transform: translateY(-20px) scale(0.9); opacity: 0; }
+            to { transform: translateY(0) scale(1); opacity: 1; }
+        }
+        .number-tag-right {
+            top: 30px;
+            left: auto;
+            right: 50px;
+            font-size: 18px;
+            line-height: 1.4;
+        }
+
+        /* 日期标签 */
+        .date-tag {
+            position: absolute;
+            top: 30px;
+            right: 200px;
+            z-index: 4;
+            font-size: 16px;
+            font-weight: 700;
+            color: #555;
+            letter-spacing: 1px;
+            animation: tagSlideIn 1s ease-out 0.2s backwards;
+            transition: all 0.3s ease;
+        }
+        .date-tag:hover {
+            color: #d4b880;
+            transform: translateX(-5px);
+        }
+
+        /* 剪影（降低透明度） */
+        .silhouette {
+            position: absolute;
+            right: 80px;
+            bottom: 150px;
+            z-index: 3;
+            width: 90px;
+            height: 130px;
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 150"><path fill="%231a1a1a" d="M70,20 C75,15 80,20 80,25 C80,30 75,35 70,40 L65,60 L75,70 L70,90 L60,85 L55,100 L50,95 L45,110 L40,105 L35,120 L30,115 L25,130 L20,125 L15,140 L10,135 L5,150 L10,145 L15,130 L20,135 L25,120 L30,125 L35,110 L40,115 L45,100 L50,105 L55,90 L60,95 L65,80 L70,85 L75,70 L80,75 L85,60 L80,55 L75,40 L80,35 L85,20 Z"/></svg>') no-repeat center;
+            background-size: contain;
+            opacity: 0.7; /* 降低剪影透明度 */
+            animation: silhouetteFadeIn 1.2s ease-out backwards;
+            transition: all 0.4s ease;
+            filter: drop-shadow(0 3px 6px rgba(0,0,0,0.12));
+        }
+        .silhouette:hover {
+            opacity: 1;
+            transform: scale(1.2) translateY(-10px);
+            filter: drop-shadow(0 6px 12px rgba(0,0,0,0.2));
+        }
+        @keyframes silhouetteFadeIn {
+            from { opacity: 0; transform: scale(0.8) translateY(10px); }
+            to { opacity: 0.7; transform: scale(1) translateY(0); }
+        }
+
+        /* 斜纹块（降低透明度） */
+        .stripes {
+            position: absolute;
+            right: 50px;
+            bottom: 70px;
+            z-index: 3;
+            width: 70px;
+            height: 50px;
+            background: repeating-linear-gradient(
+                -45deg,
+                #1a1a1a,
+                #1a1a1a 4px,
+                transparent 4px,
+                transparent 9px
+            );
+            opacity: 0.65; /* 降低斜纹块透明度 */
+            border-radius: 2px;
+            animation: stripesFadeIn 1.4s ease-out backwards;
+            transition: all 0.4s ease;
+        }
+        .stripes:hover {
+            opacity: 1;
+            transform: rotate(10deg) scale(1.2);
+            box-shadow: 0 3px 10px rgba(0,0,0,0.15);
+        }
+        @keyframes stripesFadeIn {
+            from { opacity: 0; transform: rotate(-10deg) scale(0.9); }
+            to { opacity: 0.65; transform: rotate(0) scale(1); }
+        }
+
+        /* 暖金小色块（降低透明度） */
+        .gold-block {
+            position: absolute;
+            right: 50px;
+            bottom: 180px;
+            z-index: 3;
+            width: 20px;
+            height: 80px;
+            background: linear-gradient(to bottom, #d4b880, #c9a868);
+            border-radius: 2px;
+            opacity: 0.7; /* 降低色块透明度 */
+            animation: goldFadeIn 1.5s ease-out backwards;
+            transition: all 0.3s ease;
+        }
+        .gold-block:hover {
+            opacity: 1;
+            transform: scaleX(1.2);
+            box-shadow: 0 2px 8px rgba(212, 184, 128, 0.4);
+        }
+        @keyframes goldFadeIn {
             from { opacity: 0; transform: scaleX(0.8); }
             to { opacity: 0.7; transform: scaleX(1); }
         }
 
-        .number-tag {
-            position: absolute;
-            top: 20px;
-            left: 40px;
-            z-index: 4;
-            font-size: 18px;
-            font-weight: 900;
-            color: #222;
-            letter-spacing: 2px;
-            animation: tagSlideIn 1s ease-out backwards;
-        }
-
-        @keyframes tagSlideIn {
-            from { transform: translateY(-20px); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
-        }
-
-        .number-tag-right {
-            top: 20px;
-            left: auto;
-            right: 40px;
-        }
-
-        .silhouette {
-            position: absolute;
-            right: 60px;
-            bottom: 120px;
-            z-index: 3;
-            width: 80px;
-            height: 120px;
-            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 150"><path fill="%23222" d="M70,20 C75,15 80,20 80,25 C80,30 75,35 70,40 L65,60 L75,70 L70,90 L60,85 L55,100 L50,95 L45,110 L40,105 L35,120 L30,115 L25,130 L20,125 L15,140 L10,135 L5,150 L10,145 L15,130 L20,135 L25,120 L30,125 L35,110 L40,115 L45,100 L50,105 L55,90 L60,95 L65,80 L70,85 L75,70 L80,75 L85,60 L80,55 L75,40 L80,35 L85,20 Z"/></svg>') no-repeat center;
-            background-size: contain;
-            opacity: 0.8;
-            animation: silhouetteFadeIn 1.2s ease-out backwards;
-        }
-
-        @keyframes silhouetteFadeIn {
-            from { opacity: 0; transform: scale(0.8); }
-            to { opacity: 0.8; transform: scale(1); }
-        }
-
-        .stripes {
-            position: absolute;
-            right: 40px;
-            bottom: 40px;
-            z-index: 3;
-            width: 60px;
-            height: 40px;
-            background: repeating-linear-gradient(
-                -45deg,
-                #222,
-                #222 4px,
-                transparent 4px,
-                transparent 8px
-            );
-            opacity: 0.7;
-            animation: stripesFadeIn 1.4s ease-out backwards;
-        }
-
-        @keyframes stripesFadeIn {
-            from { opacity: 0; transform: rotate(-10deg); }
-            to { opacity: 0.7; transform: rotate(0); }
-        }
-
+        /* 水印文字（降低透明度） */
         .watermark {
             position: absolute;
-            bottom: 20px;
+            bottom: 30px;
             left: 50%;
             transform: translateX(-50%);
-            font-size: 12px;
-            color: #aaa;
-            letter-spacing: 4px;
+            font-size: 14px;
+            color: #999;
+            letter-spacing: 8px;
             z-index: 2;
             animation: watermarkFadeIn 2s ease-out backwards;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            font-weight: 500;
+            opacity: 0.75; /* 降低水印透明度 */
+        }
+        .watermark:hover {
+            color: #d4b880;
+            letter-spacing: 10px;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.05);
+            opacity: 1;
+        }
+        @keyframes watermarkFadeIn {
+            from { opacity: 0; letter-spacing: 4px; }
+            to { opacity: 0.75; letter-spacing: 8px; }
         }
 
-        @keyframes watermarkFadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
+        /* 装饰性横线（降低透明度） */
+        .decor-line {
+            position: absolute;
+            z-index: 3;
+            height: 2px;
+            background: #1a1a1a;
+            opacity: 0.6; /* 降低横线透明度 */
+            animation: lineFadeIn 1.6s ease-out backwards;
+            transition: all 0.3s ease;
+        }
+        .decor-line.bottom {
+            bottom: 70px;
+            right: 130px;
+            width: 120px;
+        }
+        .decor-line.gold {
+            background: linear-gradient(to right, #d4b880, #c9a868);
+            bottom: 70px;
+            right: 250px;
+            width: 60px;
+            opacity: 0.7; /* 降低金色横线透明度 */
+        }
+        .decor-line:hover {
+            opacity: 1;
+            transform: scaleX(1.1);
+        }
+        @keyframes lineFadeIn {
+            from { opacity: 0; transform: scaleX(0); }
+            to { opacity: 0.6; transform: scaleX(1); }
+        }
+
+        /* 装饰性XXX文字（降低透明度） */
+        .decor-text {
+            position: absolute;
+            right: 100px;
+            top: 40%;
+            z-index: 2;
+            font-size: 24px;
+            color: #555;
+            letter-spacing: 8px;
+            opacity: 0.5; /* 降低装饰文字透明度 */
+            animation: textFadeIn 2s ease-out backwards;
+            transition: all 0.3s ease;
+        }
+        .decor-text:hover {
+            opacity: 1;
+            color: #888;
+            letter-spacing: 10px;
+        }
+        @keyframes textFadeIn {
+            from { opacity: 0; letter-spacing: 4px; }
+            to { opacity: 0.5; letter-spacing: 8px; }
         }
     </style>
 </head>
 <body>
+    <!-- 背景网格和定位点 -->
+    <div class="bg-grid"></div>
+    <div class="bg-dots">
+        <div class="bg-dot tl"></div>
+        <div class="bg-dot tr"></div>
+        <div class="bg-dot bl"></div>
+        <div class="bg-dot br"></div>
+        <div class="bg-dot center"></div>
+        <div class="bg-dot sub"></div>
+    </div>
+
     <div class="card">
+        <div class="mouse-light"></div>
         <div class="bg-circle"></div>
+        
+        <!-- 巨型文字 -->
         <div class="title-large">TUYE</div>
         <div class="title-handwritten">Arknights</div>
         
+        <!-- 角色图片（替换为指定图片地址） -->
         <div class="character-container">
             <img src="https://wmbolao.github.io/tuye.png" alt="图耶" class="character-img">
         </div>
 
+        <!-- 数字标签 -->
         <div class="number-tag">#158</div>
         <div class="number-tag number-tag-right">#158<br>#415</div>
+        
+        <!-- 日期标签 -->
+        <div class="date-tag">4.15/ XXX</div>
 
+        <!-- 条形码 -->
+        <div class="barcode barcode-left"></div>
         <div class="barcode"></div>
 
+        <!-- 左侧信息 -->
         <div class="info-left">
             <div class="info-block">
                 <div class="info-label">ILLUST</div>
@@ -348,6 +708,7 @@
             </div>
         </div>
 
+        <!-- 右侧信息 -->
         <div class="info-right">
             <div class="info-block">
                 <div class="info-label">MASTERY</div>
@@ -359,10 +720,92 @@
             </div>
         </div>
 
+        <!-- 装饰元素 -->
         <div class="silhouette"></div>
         <div class="stripes"></div>
+        <div class="gold-block"></div>
+        <div class="decor-line bottom"></div>
+        <div class="decor-line gold"></div>
+        <div class="decor-text">XXXXXXX</div>
 
+        <!-- 水印 -->
         <div class="watermark">ARKNIGHTS</div>
     </div>
+
+    <script>
+        // 液态玻璃交互逻辑
+        const card = document.querySelector('.card');
+        const mouseLight = document.querySelector('.mouse-light');
+        const characterImg = document.querySelector('.character-img');
+
+        // 缓动函数
+        function easeOutCubic(t) {
+            return 1 - Math.pow(1 - t, 3);
+        }
+
+        let mouseX = 0, mouseY = 0;
+        let targetX = 0, targetY = 0;
+        let rafId;
+
+        // 鼠标移动监听 - 液态玻璃高光跟随
+        card.addEventListener('mousemove', (e) => {
+            const rect = card.getBoundingClientRect();
+            targetX = e.clientX - rect.left;
+            targetY = e.clientY - rect.top;
+            
+            // 更新液态高光位置
+            const xPercent = (targetX / rect.width) * 100;
+            const yPercent = (targetY / rect.height) * 100;
+            card.style.setProperty('--x', `${xPercent}%`);
+            card.style.setProperty('--y', `${yPercent}%`);
+            
+            // 角色图3D偏转（适配液态玻璃折射）
+            const centerX = rect.width / 2;
+            const centerY = rect.height / 2;
+            const rotateX = (targetY - centerY) / 30;
+            const rotateY = (centerX - targetX) / 30;
+            characterImg.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateY(0)`;
+        });
+
+        // 鼠标离开复位
+        card.addEventListener('mouseleave', () => {
+            characterImg.style.transition = 'transform 0.6s ease-out';
+            characterImg.style.transform = 'translateY(0)';
+            // 重置液态高光
+            card.style.setProperty('--x', '50%');
+            card.style.setProperty('--y', '50%');
+            cancelAnimationFrame(rafId);
+        });
+
+        // 鼠标进入启动跟随
+        card.addEventListener('mouseenter', () => {
+            characterImg.style.transition = 'transform 0.2s ease-out';
+            
+            function updateMouseLight() {
+                const dx = targetX - mouseX;
+                const dy = targetY - mouseY;
+                mouseX += dx * 0.08;
+                mouseY += dy * 0.08;
+                
+                mouseLight.style.left = `${mouseX - 250}px`;
+                mouseLight.style.top = `${mouseY - 250}px`;
+                
+                if (Math.abs(dx) > 0.1 || Math.abs(dy) > 0.1) {
+                    rafId = requestAnimationFrame(updateMouseLight);
+                }
+            }
+            rafId = requestAnimationFrame(updateMouseLight);
+        });
+
+        // 背景网格缓慢移动动画
+        const bgGrid = document.querySelector('.bg-grid');
+        let gridOffset = 0;
+        function animateGrid() {
+            gridOffset += 0.1;
+            bgGrid.style.backgroundPosition = `${gridOffset}px ${gridOffset}px`;
+            requestAnimationFrame(animateGrid);
+        }
+        animateGrid();
+    </script>
 </body>
 </html>
