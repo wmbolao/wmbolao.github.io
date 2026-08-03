@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IMPERMANENT - 建筑拼贴艺术海报</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body {
+    width: 100%; min-height: 100vh; background: #e8e6e1;
+    font-family: 'Helvetica Neue', Arial, 'Hiragino Sans GB', 'Microsoft YaHei', 'PingFang SC', 'Noto Sans CJK JP', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+  .wrapper { 
+    width: 100%; min-height: 100vh; 
+    display: flex; align-items: center; justify-content: center; 
+    padding: 24px; gap: 24px;
+  }
+
+  /* ========== 左侧导航容器 新增 ========== */
+  .sidebar-nav {
+    width: 220px;
+    height: min(85vh, 800px);
+    background: #f5f3ee;
+    border: 1px solid rgba(0,0,0,0.12);
+    box-shadow: 0 15px 50px rgba(0,0,0,0.18);
+    position: relative;
+    z-index: 100;
+    /* 入场动画 */
+    animation: navIn 1.2s ease-out forwards;
+    transform: translateX(-40px);
+    opacity: 0;
+    padding: 40px 24px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+  @keyframes navIn {
+    to {
+      transform: translateX(0);
+      opacity: 1;
+    }
+  }
+  /* 导航角落装饰线，和海报统一风格 */
+  .nav-corner-tl {
+    position: absolute; top: 24px; left: 24px; width: 40px; height: 40px;
+    border-left: 1px solid rgba(0,0,0,0.6); border-top: 1px solid rgba(0,0,0,0.6);
+  }
+  .nav-corner-br {
+    position: absolute; bottom: 24px; right: 24px; width: 40px; height: 40px;
+    border-right: 1px solid rgba(0,0,0,0.5); border-bottom: 1px solid rgba(0,0,0,0.5);
+  }
+  .nav-title {
+    font-size: 13px;
+    letter-spacing: 0.4em;
+    font-weight: 700;
+    color: #000;
+    margin-bottom: 48px;
+    padding-left: 8px;
+    border-left: 2px solid #000;
+  }
+  .menu-list {
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+  }
+  .menu-item {
+    position: relative;
+    padding: 14px 12px;
+    cursor: pointer;
+    transition: all 0.4s cubic-bezier(0.2,0,0.2,1);
+    border-left: 1px solid transparent;
+  }
+  .menu-item::before {
+    content: "";
+    position: absolute;
+    left: 0; top: 0; bottom: 0; width: 0;
+    background: rgba(0,0,0,0.08);
+    transition: width 0.4s ease;
+    z-index: -1;
+  }
+  .menu-item:hover::before {
+    width: 100%;
+  }
+  .menu-item.active {
+    border-left: 2px solid #000;
+  }
+  .menu-item.active::before {
+    width: 100%;
+    background: rgba(0,0,0,0.12);
+  }
+  .menu-text {
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: 0.15em;
+    color: #000;
+    display: block;
+    transition: transform 0.3s ease;
+  }
+  .menu-item:hover .menu-text {
+    transform: translateX(6px);
+  }
+  .menu-sub {
+    font-size: 9px;
+    letter-spacing: 0.2em;
+    color: rgba(0,0,0,0.55);
+    margin-top: 4px;
+  }
+  .nav-footer-text {
+    font-family: 'Courier New', monospace;
+    font-size: 9px;
+    color: rgba(0,0,0,0.45);
+    letter-spacing: 0.1em;
+    margin-top: 60px;
+  }
+
+  /* 原有海报样式不变 */
+  .poster {
+    position: relative; flex: none; width: min(1920px, calc(100vw - 340px), calc((100vh - 120px) * 16 / 9)); aspect-ratio: 16 / 9;
+    background: #f5f3ee; overflow: hidden;
+    box-shadow: 0 25px 80px rgba(0,0,0,0.25), 0 8px 20px rgba(0,0,0,0.1);
+    /* 海报同步入场动画，延迟一点错开层级 */
+    animation: posterIn 1.2s ease-out 0.2s forwards;
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  @keyframes posterIn {
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  .poster::before {
+    content: ''; position: absolute; inset: 0; pointer-events: none; z-index: 1;
+    mix-blend-mode: multiply; opacity: 0.5;
+    background-image:
+      radial-gradient(circle at 20% 30%, rgba(0,0,0,0.04) 0%, transparent 50%),
+      radial-gradient(circle at 80% 70%, rgba(0,0,0,0.05) 0%, transparent 40%),
+      radial-gradient(circle at 50% 50%, rgba(0,0,0,0.02) 0%, transparent 60%);
+  }
+  #noiseCanvas { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 2; opacity: 0.08; mix-blend-mode: multiply; }
+  .gray-block-1 { position: absolute; top: 8%; left: 28%; width: 18%; height: 22%; background: rgba(120,120,120,0.18); z-index: 3; }
+  .gray-block-2 { position: absolute; top: 12%; right: 8%; width: 6%; height: 45%; background: rgba(120,120,120,0.12); z-index: 3; }
+  .gray-block-3 { position: absolute; bottom: 20%; left: 10%; width: 35%; height: 8%; background: rgba(80,80,80,0.08); z-index: 3; }
+  .corner-tl { position: absolute; top: 6%; left: 4%; width: 8%; height: 12%; border-left: 1px solid rgba(0,0,0,0.7); border-top: 1px solid rgba(0,0,0,0.7); z-index: 10; }
+  .corner-br { position: absolute; bottom: 8%; right: 6%; width: 10%; height: 14%; border-right: 1px solid rgba(0,0,0,0.6); border-bottom: 1px solid rgba(0,0,0,0.6); z-index: 10; }
+  .diag-line-1 { position: absolute; top: 25%; left: 45%; width: 12%; height: 1px; background: rgba(0,0,0,0.5); transform: rotate(-25deg); transform-origin: left center; z-index: 10; }
+  .diag-line-2 { position: absolute; bottom: 30%; left: 55%; width: 8%; height: 1px; background: rgba(0,0,0,0.4); transform: rotate(15deg); transform-origin: left center; z-index: 10; }
+  .v-line { position: absolute; top: 10%; left: 38%; width: 1px; height: 35%; background: rgba(0,0,0,0.3); z-index: 10; }
+  .h-line { position: absolute; top: 55%; left: 5%; width: 20%; height: 1px; background: rgba(0,0,0,0.4); z-index: 10; }
+  .brand { position: absolute; top: 5%; left: 4%; z-index: 20; }
+  .brand-title { display: flex; align-items: center; gap: 12px; }
+  .brand-square { width: 18px; height: 18px; background: #000; }
+  .brand-text { font-size: 9px; font-weight: 700; letter-spacing: 0.35em; color: #000; }
+  .brand-desc { margin-top: 12px; max-width: 360px; font-size: 6px; line-height: 1.8; letter-spacing: 0.05em; color: rgba(0,0,0,0.7); }
+  .cityscape { position: absolute; top: 22%; left: 3%; width: 18%; height: 50%; overflow: hidden; z-index: 5; }
+  .cityscape svg { width: 100%; height: 100%; display: block; }
+  .cityscape::after { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 1px; background: rgba(0,0,0,0.3); }
+  .section-drawing { position: absolute; top: 8%; left: 35%; width: 28%; height: 30%; z-index: 5; }
+  .section-drawing svg { width: 100%; height: 100%; display: block; }
+  .jp-title { position: absolute; top: 6%; right: 4%; width: 22%; height: 55%; display: flex; align-items: center; justify-content: center; z-index: 15; }
+  .jp-bg-1 { position: absolute; top: 5%; right: 15%; width: 60%; height: 90%; background: rgba(0,0,0,0.9); }
+  .jp-bg-2 { position: absolute; top: 10%; right: 5%; width: 35%; height: 40%; background: rgba(0,0,0,0.7); }
+  .jp-bg-3 { position: absolute; bottom: 15%; right: 10%; width: 50%; height: 25%; background: rgba(0,0,0,0.8); }
+  .jp-chars { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; gap: 1.5vw; }
+  .jp-char { font-weight: 900; line-height: 1; font-size: clamp(1.34rem, 4vw, 4.7rem); }
+  .jp-char.c1 { color: rgba(255,255,255,0.9); transform: translateX(-10%); }
+  .jp-char.c2 { color: rgba(230,230,230,0.9); transform: translateX(15%); }
+  .jp-char.c3 { color: rgba(255,255,255,0.8); transform: translateX(-5%); }
+  .jp-char.c4 { color: rgba(210,210,210,0.9); transform: translateX(20%); }
+  .silhouette-band { position: absolute; top: 58%; left: 0; width: 100%; height: 18%; z-index: 8; }
+  .silhouette-band svg { width: 100%; height: 100%; display: block; }
+  .gradient-bar { position: absolute; bottom: 0; left: 0; width: 100%; height: 40%; background: linear-gradient(to right, rgba(40,40,40,0) 0%, rgba(40,40,40,0.6) 20%, rgba(30,30,30,0.8) 50%, rgba(40,40,40,0.6) 80%, rgba(40,40,40,0) 100%); }
+  .en-title { position: absolute; bottom: 8%; left: 3%; z-index: 20; }
+  .en-title h1 { font-size: clamp(1.68rem, 5.36vw, 6rem); font-weight: 900; line-height: 1; letter-spacing: -0.02em; color: #000; }
+  .en-divider { margin-top: 8px; width: 100%; height: 1px; background: rgba(0,0,0,0.6); }
+  .en-sub { margin-top: 8px; font-size: 7px; letter-spacing: 0.4em; text-transform: uppercase; color: rgba(0,0,0,0.6); }
+  .collage-area { position: absolute; bottom: 6%; right: 4%; width: 28%; height: 28%; z-index: 10; }
+  .floor-2nd, .floor-1st { position: absolute; overflow: hidden; border: 1px solid rgba(0,0,0,0.4); }
+  .floor-2nd { top: 0; left: 0; width: 55%; height: 45%; }
+  .floor-1st { bottom: 0; right: 0; width: 60%; height: 45%; }
+  .floor-2nd svg, .floor-1st svg { width: 100%; height: 100%; display: block; }
+  .floor-label { position: absolute; background: #000; color: #fff; font-size: 7px; padding: 4px 8px; letter-spacing: 0.15em; font-weight: 500; }
+  .label-2nd { top: 8px; right: 8px; }
+  .label-1st { bottom: 8px; left: 8px; }
+  .bottom-bar { position: absolute; bottom: 0; left: 0; width: 100%; height: 2%; background: rgba(0,0,0,0.8); z-index: 10; }
+  .bottom-line { position: absolute; bottom: 2.5%; left: 4%; right: 4%; height: 1px; background: rgba(0,0,0,0.3); z-index: 10; }
+  .page-number { position: absolute; bottom: 3%; right: 4%; font-size: 7px; letter-spacing: 0.15em; color: rgba(0,0,0,0.5); font-family: 'Courier New', monospace; z-index: 15; }
+
+  /* 页面切换内容容器 新增 */
+  .page-container {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+  }
+  .page-panel {
+    position: absolute;
+    inset: 0;
+    padding: 60px;
+    background: #f5f3ee;
+    transition: transform 0.6s cubic-bezier(0.2,0,0.2,1), opacity 0.5s ease;
+  }
+  /* 默认海报页面显示 */
+  .page-poster {
+    transform: translateX(-100%);
+    opacity: 0;
+    z-index: 1;
+  }
+  .page-poster.active {
+    transform: translateX(0);
+    opacity: 1;
+    z-index: 10;
+  }
+  /* 简历、作品集页面初始隐藏 */
+  .page-resume, .page-work {
+    transform: translateX(100%);
+    opacity: 0;
+    z-index: 1;
+  }
+  /* 激活态切换动画 */
+  .page-panel.active {
+    transform: translateX(0);
+    opacity: 1;
+    z-index: 10;
+  }
+
+  /* 简历/作品集页面内文本样式，统一风格 */
+  .page-h2 {
+    font-size: clamp(2rem,5vw,4rem);
+    font-weight: 900;
+    letter-spacing: -0.03em;
+    margin-bottom: 24px;
+  }
+  .page-div {
+    width: 120px;
+    height: 1px;
+    background: rgba(0,0,0,0.6);
+    margin-bottom: 32px;
+  }
+  .page-desc {
+    font-size: 12px;
+    line-height: 2;
+    max-width: 700px;
+    color: rgba(0,0,0,0.7);
+    letter-spacing: 0.04em;
+  }
+
+  /* 作品集细分栏目 新增 */
+  .work-layout { display: flex; flex-direction: column; height: 100%; }
+  .work-head { flex: none; }
+  .work-head .page-h2 { font-size: clamp(1.6rem, 3.5vw, 2.8rem); margin-bottom: 8px; }
+  .work-head .page-div { margin-bottom: 12px; }
+  .work-tabs {
+    flex: none;
+    display: flex;
+    gap: 10px;
+    margin-bottom: 14px;
+    flex-wrap: wrap;
+  }
+  .work-tab {
+    padding: 10px 26px;
+    border: 1px solid rgba(0,0,0,0.25);
+    background: transparent;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.2em;
+    color: rgba(0,0,0,0.7);
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+  .work-tab:hover { border-color: #000; color: #000; }
+  .work-tab.active { background: #000; color: #fff; border-color: #000; }
+  .work-panes { flex: 1; min-height: 0; position: relative; }
+  .work-pane {
+    position: absolute; inset: 0;
+    overflow-y: auto;
+    padding-right: 12px;
+    display: none;
+  }
+  .work-pane.active { display: block; animation: paneIn 0.4s ease; }
+  @keyframes paneIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .work-grid {
+    columns: 3;
+    column-gap: 16px;
+  }
+  .work-grid a {
+    display: block;
+    margin-bottom: 16px;
+    break-inside: avoid;
+    overflow: hidden;
+    border: 1px solid rgba(0,0,0,0.15);
+    background: #e8e6e1;
+  }
+  .work-grid img {
+    width: 100%; height: auto;
+    display: block;
+    transition: transform 0.5s ease;
+  }
+  .work-grid a:hover img { transform: scale(1.05); }
+  .link-card {
+    max-width: 560px;
+    border: 1px solid rgba(0,0,0,0.3);
+    padding: 28px;
+    transition: all 0.3s ease;
+  }
+  .link-card:hover { background: rgba(0,0,0,0.05); }
+  .link-tag {
+    font-size: 10px;
+    letter-spacing: 0.3em;
+    color: rgba(0,0,0,0.5);
+  }
+  .link-card h3 {
+    font-size: 22px;
+    font-weight: 900;
+    letter-spacing: 0.05em;
+    margin: 12px 0;
+    line-height: 1.4;
+  }
+  .link-card p {
+    font-size: 12px;
+    line-height: 1.9;
+    color: rgba(0,0,0,0.65);
+    margin-bottom: 20px;
+  }
+  .link-btn {
+    display: inline-block;
+    padding: 11px 26px;
+    background: #000;
+    color: #fff;
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    text-decoration: none;
+    transition: all 0.3s ease;
+  }
+  .link-btn:hover { background: #333; }
+
+  @media (max-width: 1024px) {
+    .wrapper { flex-direction: column; padding: 12px; }
+    .sidebar-nav { width: 100%; height: auto; padding: 24px; }
+    .menu-list { flex-direction: row; gap: 16px; justify-content: center; }
+    .nav-footer-text { display: none; }
+    .poster { flex: none; width: 100%; max-width: min(1920px, calc((100vh - 24px) * 16 / 9)); }
+    .work-grid { columns: 2; }
+  }
+  @media (max-width: 768px) {
+    .wrapper { padding: 8px; }
+    .brand-desc { max-width: 200px; font-size: 7px; }
+    .brand-text { font-size: 10px; }
+    .brand-square { width: 12px; height: 12px; }
+    .en-sub { font-size: 8px; }
+    .floor-label { font-size: 7px; padding: 2px 4px; }
+    .page-number { font-size: 7px; }
+    .page-panel { padding: 30px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrapper">
+  <!-- 左侧导航栏 新增 -->
+  <div class="sidebar-nav">
+    <div class="nav-corner-tl"></div>
+    <div class="nav-corner-br"></div>
+    <div>
+      <div class="nav-title">NAVIGATION</div>
+      <div class="menu-list">
+        <div class="menu-item active" data-target="cover">
+          <span class="menu-text">封面</span>
+          <span class="menu-sub">COVER</span>
+        </div>
+        <div class="menu-item" data-target="resume">
+          <span class="menu-text">个人简历</span>
+          <span class="menu-sub">PERSONAL RESUME</span>
+        </div>
+        <div class="menu-item" data-target="work">
+          <span class="menu-text">作品集</span>
+          <span class="menu-sub">ARCHITECTURE WORKS</span>
+        </div>
+      </div>
+    </div>
+    <div class="nav-footer-text">N° 007 / MMXXVI · IMPERMANENT</div>
+  </div>
+
+  <!-- 主内容容器，承载切换页面 -->
+  <div class="poster" id="poster">
+    <div class="page-container">
+      <!-- 默认海报页面 -->
+      <div class="page-panel page-poster">
+        <canvas id="noiseCanvas"></canvas>
+        <div class="gray-block-1"></div><div class="gray-block-2"></div><div class="gray-block-3"></div>
+        <div class="corner-tl"></div><div class="corner-br"></div>
+        <div class="diag-line-1"></div><div class="diag-line-2"></div>
+        <div class="v-line"></div><div class="h-line"></div>
+        <div class="brand">
+          <div class="brand-title"><div class="brand-square"></div><span class="brand-text">STRUCTURE</span></div>
+          <p class="brand-desc">THOSE WHO HAVE GAINED SPIRITUAL FREEDOM STILL NEED TO PURIFY THEMSELVES, BECAUSE THERE ARE STILL MANY EVILS AND DIRT LEFT IN THEIR HEARTS.</p>
+        </div>
+        <div class="cityscape">
+          <svg viewBox="0 0 200 500" preserveAspectRatio="xMidYMid slice">
+            <defs>
+              <linearGradient id="skyGrad" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="#e8e6e1" /><stop offset="60%" stop-color="#d4d2cd" /><stop offset="100%" stop-color="#bfbdb8" /></linearGradient>
+              <linearGradient id="fogGrad" x1="0%" y1="70%" x2="0%" y2="100%"><stop offset="0%" stop-color="transparent" /><stop offset="100%" stop-color="#f5f3ee" stop-opacity="0.8" /></linearGradient>
+              <filter id="grain"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" /><feColorMatrix type="saturate" values="0" /><feComponentTransfer><feFuncA type="linear" slope="0.15" /></feComponentTransfer></filter>
+            </defs>
+            <rect width="200" height="500" fill="url(#skyGrad)" />
+            <g fill="#2a2a2a" opacity="0.9">
+              <rect x="5" y="180" width="18" height="320" /><rect x="25" y="150" width="12" height="350" /><rect x="40" y="200" width="22" height="300" />
+              <rect x="65" y="120" width="8" height="380" /><rect x="76" y="160" width="15" height="340" /><rect x="94" y="190" width="20" height="310" />
+              <rect x="117" y="140" width="10" height="360" /><rect x="130" y="175" width="18" height="325" /><rect x="152" y="210" width="14" height="290" />
+              <rect x="170" y="155" width="20" height="345" /><rect x="193" y="195" width="7" height="305" />
+            </g>
+            <g fill="#555" opacity="0.85">
+              <rect x="0" y="250" width="15" height="250" /><rect x="17" y="220" width="10" height="280" />
+              <polygon points="30,280 45,220 60,280 60,500 30,500" /><rect x="62" y="260" width="12" height="240" />
+              <rect x="78" y="230" width="8" height="270" /><polygon points="90,270 105,210 120,270 120,500 90,500" />
+              <rect x="122" y="245" width="15" height="255" /><rect x="140" y="265" width="10" height="235" />
+              <polygon points="155,275 170,215 185,275 185,500 155,500" /><rect x="187" y="240" width="13" height="260" />
+            </g>
+            <g fill="#888" opacity="0.7">
+              <rect x="2" y="320" width="20" height="180" /><rect x="25" y="300" width="14" height="200" /><rect x="42" y="340" width="18" height="160" />
+              <rect x="63" y="310" width="10" height="190" /><rect x="76" y="330" width="16" height="170" /><rect x="95" y="295" width="12" height="205" />
+              <rect x="110" y="325" width="14" height="175" /><rect x="127" y="305" width="10" height="195" /><rect x="140" y="335" width="16" height="165" />
+              <rect x="159" y="315" width="12" height="185" /><rect x="174" y="345" width="14" height="155" /><rect x="190" y="320" width="10" height="180" />
+            </g>
+            <rect width="200" height="500" fill="url(#fogGrad)" />
+            <rect width="200" height="500" filter="url(#grain)" />
+          </svg>
+        </div>
+        <div class="section-drawing">
+          <svg viewBox="0 0 400 200" fill="none" stroke="#1a1a1a" stroke-width="0.8">
+            <line x1="50" y1="20" x2="50" y2="180" /><line x1="80" y1="40" x2="80" y2="180" />
+            <line x1="50" y1="20" x2="65" y2="10" /><line x1="65" y1="10" x2="80" y2="40" />
+            <line x1="50" y1="60" x2="80" y2="60" /><line x1="50" y1="90" x2="80" y2="90" />
+            <line x1="50" y1="120" x2="80" y2="120" /><line x1="50" y1="150" x2="80" y2="150" />
+            <line x1="80" y1="180" x2="280" y2="180" /><line x1="80" y1="80" x2="150" y2="30" />
+            <line x1="150" y1="30" x2="220" y2="50" /><line x1="220" y1="50" x2="280" y2="70" />
+            <line x1="280" y1="70" x2="280" y2="180" />
+            <line x1="120" y1="100" x2="120" y2="180" stroke-width="0.5" />
+            <line x1="160" y1="75" x2="160" y2="180" stroke-width="0.5" />
+            <line x1="200" y1="60" x2="200" y2="180" stroke-width="0.5" />
+            <line x1="240" y1="80" x2="240" y2="180" stroke-width="0.5" />
+            <line x1="280" y1="180" x2="350" y2="180" /><line x1="350" y1="100" x2="350" y2="180" />
+            <line x1="280" y1="70" x2="350" y2="100" />
+            <line x1="300" y1="120" x2="350" y2="120" stroke-width="0.5" />
+            <line x1="300" y1="150" x2="350" y2="150" stroke-width="0.5" />
+            <line x1="30" y1="180" x2="370" y2="180" stroke-width="1.2" />
+            <line x1="20" y1="190" x2="380" y2="190" stroke-width="1" />
+            <line x1="30" y1="180" x2="20" y2="190" /><line x1="370" y1="180" x2="380" y2="190" />
+            <line x1="150" y1="30" x2="150" y2="5" stroke-width="0.6" stroke-dasharray="2,2" />
+            <circle cx="150" cy="30" r="2" fill="#1a1a1a" stroke="none" />
+            <line x1="150" y1="5" x2="100" y2="5" stroke-width="0.6" />
+            <circle cx="100" cy="5" r="1.5" fill="#1a1a1a" stroke="none" />
+            <line x1="200" y1="60" x2="200" y2="15" stroke-width="0.6" stroke-dasharray="2,2" />
+            <circle cx="200" cy="60" r="2" fill="#1a1a1a" stroke="none" />
+            <line x1="200" y1="15" x2="260" y2="15" stroke-width="0.6" />
+            <circle cx="260" cy="15" r="1.5" fill="#1a1a1a" stroke="none" />
+            <text x="70" y="2" fill="#1a1a1a" font-size="5" font-family="monospace" stroke="none">A-A'</text>
+            <text x="270" y="12" fill="#1a1a1a" font-size="5" font-family="monospace" stroke="none">SECTION</text>
+            <line x1="320" y1="195" x2="370" y2="195" stroke-width="0.8" />
+            <line x1="320" y1="192" x2="320" y2="198" stroke-width="0.8" />
+            <line x1="370" y1="192" x2="370" y2="198" stroke-width="0.8" />
+            <text x="335" y="200" fill="#333" font-size="4" font-family="monospace" stroke="none">10M</text>
+          </svg>
+        </div>
+        <div class="jp-title">
+          <div class="jp-bg-1"></div><div class="jp-bg-2"></div><div class="jp-bg-3"></div>
+          <div class="jp-chars">
+            <span class="jp-char c1">諸</span><span class="jp-char c2">行</span>
+            <span class="jp-char c3">無</span><span class="jp-char c4">常</span>
+          </div>
+        </div>
+        <div class="silhouette-band">
+          <div class="gradient-bar"></div>
+          <svg viewBox="0 0 1600 180" preserveAspectRatio="none">
+            <defs><linearGradient id="silGrad" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="#1a1a1a" /><stop offset="100%" stop-color="#0a0a0a" /></linearGradient></defs>
+            <g fill="url(#silGrad)">
+              <g transform="translate(0,0)"><rect x="10" y="80" width="80" height="100" /><polygon points="10,80 50,30 90,80" /><circle cx="50" cy="45" r="15" /><rect x="47" y="15" width="6" height="20" /></g>
+              <g transform="translate(100,0)"><rect x="0" y="100" width="100" height="80" /><polygon points="0,100 50,60 100,100" /></g>
+              <g transform="translate(220,0)"><rect x="20" y="20" width="40" height="160" /><polygon points="20,20 40,0 60,20" /></g>
+              <g transform="translate(290,0)"><rect x="0" y="70" width="120" height="110" /><rect x="0" y="55" width="120" height="20" /></g>
+              <g transform="translate(430,0)"><rect x="10" y="140" width="80" height="40" /><rect x="20" y="110" width="60" height="30" /><rect x="30" y="80" width="40" height="30" /><rect x="38" y="55" width="24" height="25" /><polygon points="38,55 50,35 62,55" /></g>
+              <g transform="translate(540,0)"><rect x="20" y="90" width="100" height="90" /><ellipse cx="70" cy="80" rx="50" ry="25" /><rect x="60" y="30" width="20" height="50" /><circle cx="70" cy="25" r="10" /><rect x="68" y="5" width="4" height="15" /></g>
+              <g transform="translate(680,0)"><rect x="10" y="60" width="30" height="120" /><rect x="50" y="40" width="40" height="140" /><rect x="100" y="60" width="30" height="120" /></g>
+              <g transform="translate(830,0)"><rect x="10" y="30" width="70" height="150" fill="#252525" /></g>
+              <g transform="translate(920,0)"><rect x="0" y="120" width="110" height="60" /><rect x="0" y="105" width="110" height="18" /><polygon points="0,105 55,75 110,105" /></g>
+              <g transform="translate(1050,0)"><rect x="25" y="10" width="40" height="170" /><polygon points="25,10 45,0 65,10" /><circle cx="45" cy="50" r="12" fill="#333" /></g>
+              <g transform="translate(1130,0)"><rect x="10" y="100" width="120" height="80" /><rect x="20" y="80" width="100" height="25" /><ellipse cx="70" cy="70" rx="55" ry="20" /><rect x="55" y="30" width="30" height="40" /><ellipse cx="70" cy="30" rx="15" ry="8" /></g>
+              <g transform="translate(1270,0)"><rect x="0" y="50" width="25" height="130" fill="#222" /><rect x="28" y="20" width="30" height="160" /><rect x="62" y="60" width="20" height="120" fill="#2a2a2a" /><rect x="86" y="35" width="28" height="145" /><rect x="118" y="70" width="22" height="110" fill="#252525" /></g>
+              <g transform="translate(1430,0)"><rect x="10" y="60" width="90" height="120" /><rect x="10" y="45" width="90" height="20" /></g>
+              <g transform="translate(1540,0)"><rect x="20" y="80" width="50" height="100" /><polygon points="20,80 45,40 70,80" /><rect x="42" y="20" width="6" height="25" /><circle cx="45" cy="15" r="5" /></g>
+            </g>
+          </svg>
+        </div>
+        <div class="en-title">
+          <h1>IMPERMANENT</h1>
+          <div class="en-divider"></div>
+          <p class="en-sub">ARCHITECTURE × COLLAGE</p>
+        </div>
+        <div class="collage-area">
+          <div class="floor-2nd">
+            <svg viewBox="0 0 200 120" preserveAspectRatio="xMidYMid slice">
+              <rect width="200" height="120" fill="#e0ded9" />
+              <rect x="5" y="30" width="40" height="90" fill="#333" /><polygon points="5,30 25,10 45,30" fill="#333" />
+              <rect x="50" y="20" width="50" height="100" fill="#222" />
+              <rect x="105" y="40" width="35" height="80" fill="#2a2a2a" /><polygon points="105,40 122,20 140,40" fill="#2a2a2a" />
+              <rect x="145" y="25" width="50" height="95" fill="#1a1a1a" />
+            </svg>
+            <span class="floor-label label-2nd">- SECOND FLOOR</span>
+          </div>
+          <div class="floor-1st">
+            <svg viewBox="0 0 200 120" preserveAspectRatio="xMidYMid slice">
+              <rect width="200" height="120" fill="#d8d6d1" />
+              <rect x="10" y="20" width="80" height="100" fill="#252525" />
+              <rect x="100" y="40" width="90" height="80" fill="#1f1f1f" />
+              <rect x="100" y="30" width="90" height="15" fill="#1f1f1f" />
+              <polygon points="100,30 145,10 190,30" fill="#1f1f1f" />
+            </svg>
+            <span class="floor-label label-1st">- FIRST FLOOR</span>
+          </div>
+        </div>
+        <div class="bottom-bar"></div>
+        <div class="bottom-line"></div>
+        <div class="page-number">N° 007 / MMXXVI</div>
+      </div>
+
+      <!-- 个人简历页面 -->
+      <div class="page-panel page-resume">
+    <h2 class="page-h2">个人简历<br>PROFILE</h2>
+    <div class="page-div"></div>
+    <p class="page-desc">
+      吕浩玮，吉林大学广告学本科在读（17岁），主攻新媒体内容策划与数据传播方向。 拥有图文创作、短视频制作、视觉设计实战经验：独立运营个人公众号，已发布原创文章；参与网易小蜜蜂社区共建项目，单篇笔记获700+浏览量；数据新闻作品入围省赛；短视频作品2天获3000+播放量。熟练使用PS/AE/Canva/SQL及AI工作流工具，善于通过数据分析优化内容决策。作品集收录数据新闻网页、平面设计、短视频及公众号文章，点击即可查看完整案例。
+    </p>
+  </div>
+
+  <!-- 作品集页面 -->
+  <div class="page-panel page-work">
+    <div class="work-layout">
+      <div class="work-head">
+        <h2 class="page-h2">作品集<br>WORKS</h2>
+        <div class="page-div"></div>
+      </div>
+      <div class="work-tabs">
+        <div class="work-tab active" data-work="visual">视觉设计</div>
+        <div class="work-tab" data-work="video">视频剪辑</div>
+        <div class="work-tab" data-work="news">数据新闻</div>
+      </div>
+      <div class="work-panes">
+        <!-- 视觉设计 -->
+        <div class="work-pane active" id="work-visual">
+          <div class="work-grid">
+            <a href="图片/1.jpg" target="_blank"><img src="图片/1.jpg" alt="视觉作品 1"></a>
+            <a href="图片/2.jpg" target="_blank"><img src="图片/2.jpg" alt="视觉作品 2"></a>
+            <a href="图片/3_00000.jpg" target="_blank"><img src="图片/3_00000.jpg" alt="视觉作品 3"></a>
+            <a href="图片/4._00000.jpg" target="_blank"><img src="图片/4._00000.jpg" alt="视觉作品 4"></a>
+            <a href="图片/合成 5_00000.jpg" target="_blank"><img src="图片/合成 5_00000.jpg" alt="视觉作品 5"></a>
+            <a href="图片/屏幕截图 2026-03-21 171607.png" target="_blank"><img src="图片/屏幕截图 2026-03-21 171607.png" alt="视觉作品 6"></a>
+            <a href="图片/屏幕截图 2026-03-21 205233.png" target="_blank"><img src="图片/屏幕截图 2026-03-21 205233.png" alt="视觉作品 7"></a>
+            <a href="图片/屏幕截图 2026-06-13 233612.png" target="_blank"><img src="图片/屏幕截图 2026-06-13 233612.png" alt="视觉作品 8"></a>
+            <a href="图片/调色1.png" target="_blank"><img src="图片/调色1.png" alt="调色作品 1"></a>
+            <a href="图片/调色2.png" target="_blank"><img src="图片/调色2.png" alt="调色作品 2"></a>
+            <a href="图片/调色3.png" target="_blank"><img src="图片/调色3.png" alt="调色作品 3"></a>
+          </div>
+        </div>
+        <!-- 视频剪辑 -->
+        <div class="work-pane" id="work-video">
+          <div class="link-card">
+            <div class="link-tag">VIDEO EDITING / BILIBILI</div>
+            <h3>视频剪辑作品</h3>
+            <p>短视频剪辑、特效、调色等作品合集，持续更新中。点击进入 B 站个人主页查看全部视频作品。</p>
+            <a class="link-btn" href="https://space.bilibili.com/3546918617615051?spm_id_from=333.1007.0.0" target="_blank">查看作品 →</a>
+          </div>
+        </div>
+        <!-- 数据新闻 -->
+        <div class="work-pane" id="work-news">
+          <div class="link-card">
+            <div class="link-tag">DATA JOURNALISM</div>
+            <h3>数据新闻：课后服务的「最后一公里」</h3>
+            <p>全国31省义务教育课后服务质量与负担数据透视。基于31省公开数据整理与可视化的数据新闻网页作品，入围省级赛事。</p>
+            <a class="link-btn" href="19 数据新闻/16.html" target="_blank">查看完整案例 →</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+    </div>
+  </div>
+</div>
+<script>
+  (function() {
+    var canvas = document.getElementById('noiseCanvas');
+    var ctx = canvas.getContext('2d');
+    var w = 400, h = Math.round(400 * 9 / 16);
+    canvas.width = w; canvas.height = h;
+    var imageData = ctx.createImageData(w, h);
+    var data = imageData.data;
+    for (var i = 0; i < data.length; i += 4) {
+      var v = Math.floor(200 + Math.random() * 55);
+      data[i] = v; data[i+1] = v; data[i+2] = v; data[i+3] = 255;
+    }
+    ctx.putImageData(imageData, 0, 0);
+  })();
+
+  // 页面切换交互逻辑
+  const menuItems = document.querySelectorAll('.menu-item');
+  const panels = document.querySelectorAll('.page-panel');
+  // 默认显示封面页
+  document.querySelector('.page-poster').classList.add('active');
+  menuItems.forEach(item => {
+    item.addEventListener('click', () => {
+      const target = item.dataset.target;
+      // 切换菜单激活态
+      menuItems.forEach(m => m.classList.remove('active'));
+      item.classList.add('active');
+      // 页面入场出场动画
+      panels.forEach(panel => {
+        panel.classList.remove('active');
+      })
+      if(target === 'cover'){
+        document.querySelector('.page-poster').classList.add('active');
+      }else if(target === 'resume'){
+        document.querySelector('.page-resume').classList.add('active');
+      }else if(target === 'work'){
+        document.querySelector('.page-work').classList.add('active');
+      }
+    })
+  })
+
+  // 作品集细分栏目切换
+  const workTabs = document.querySelectorAll('.work-tab');
+  const workPanes = document.querySelectorAll('.work-pane');
+  workTabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      workTabs.forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      workPanes.forEach(p => p.classList.remove('active'));
+      document.getElementById('work-' + tab.dataset.work).classList.add('active');
+    });
+  });
+</script>
+</body>
+</html>
