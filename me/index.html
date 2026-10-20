@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>伯劳 · LANIUS — 无限画板与传送门</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<!-- 字体异步加载：网络不通时自动回退到系统字体，不会阻塞页面 -->
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Cormorant+Garamond:ital,wght@0,500;0,700;1,500&family=Long+Cang&family=Noto+Serif+SC:wght@500;900&family=Ma+Shan+Zheng&family=Special+Elite&family=ZCOOL+KuaiLe&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body class="intro-running">
+
+<!-- ================= 主体：无限画板 ================= -->
+<div id="app">
+  <div id="stage">
+    <canvas id="board" aria-label="无限画板"></canvas>
+    <!-- 网页维度（传送门打开的嵌入页面） -->
+    <div id="webview" aria-hidden="true">
+      <iframe id="webFrame" title="传送门另一侧的页面"></iframe>
+    </div>
+  </div>
+
+  <!-- 左上：场景标题 / 返回 -->
+  <div class="topleft ui">
+    <button id="backBtn" class="back-btn" title="穿回上一个维度 (Backspace)">
+      <span class="mini-portal"></span><span>穿回</span>
+    </button>
+    <div class="scene-tag">
+      <span class="scene-mark">LANIUS</span>
+      <span id="sceneTitle">主画板</span>
+    </div>
+  </div>
+
+  <!-- 顶部工具栏 -->
+  <div class="toolbar ui board-only" role="toolbar" aria-label="绘图工具">
+    <button data-tool="select" title="选择 (V / 1)" class="active"><svg viewBox="0 0 24 24"><path d="M5 3l14 8-6 1.6L10 19z"/></svg><i>1</i></button>
+    <button data-tool="hand" title="抓手平移 (H / 2)"><svg viewBox="0 0 24 24"><path d="M8 12V5.5a1.5 1.5 0 013 0V11m0-1V4.5a1.5 1.5 0 013 0V11m0-.5V6a1.5 1.5 0 013 0v7c0 4-2.5 7-6.5 7-3 0-4.5-1.5-6-4l-2-3.5a1.5 1.5 0 012.5-1.6L8 13"/></svg><i>2</i></button>
+    <span class="sep"></span>
+    <button data-tool="pen" title="画笔 (P / 3)"><svg viewBox="0 0 24 24"><path d="M4 20c3-1 4-3 6-6l7-9 2 2-8 8c-2 2-4 4-7 5z"/></svg><i>3</i></button>
+    <button data-tool="rect" title="矩形 (R / 4)"><svg viewBox="0 0 24 24"><rect x="4" y="6" width="16" height="12" rx="1.5"/></svg><i>4</i></button>
+    <button data-tool="ellipse" title="椭圆 (O / 5)"><svg viewBox="0 0 24 24"><ellipse cx="12" cy="12" rx="8.5" ry="6.5"/></svg><i>5</i></button>
+    <button data-tool="arrow" title="箭头 (A / 6)"><svg viewBox="0 0 24 24"><path d="M4 20L19 5M11 5h8v8"/></svg><i>6</i></button>
+    <button data-tool="line" title="直线 (L / 7)"><svg viewBox="0 0 24 24"><path d="M4 20L20 4"/></svg><i>7</i></button>
+    <button data-tool="text" title="文字 (T / 8)"><svg viewBox="0 0 24 24"><path d="M5 6V4h14v2M12 4v16M9 20h6"/></svg><i>8</i></button>
+    <button data-tool="eraser" title="橡皮 (E / 9)"><svg viewBox="0 0 24 24"><path d="M9 20h11M4.5 14.5l9-9a2 2 0 012.8 0l2.2 2.2a2 2 0 010 2.8L11 18H8z"/></svg><i>9</i></button>
+    <span class="sep"></span>
+    <button data-tool="portal" class="portal-tool" title="创造传送门 (G / 0)"><span class="mini-portal"></span><b>传送门</b><i>0</i></button>
+  </div>
+
+  <!-- 左侧属性面板 -->
+  <div class="props ui board-only" aria-label="样式">
+    <div class="prop-title">笔触 Stroke</div>
+    <div class="swatches" id="colorSwatches">
+      <button data-color="ink" class="active" title="墨色"></button>
+      <button data-color="#c8442b" title="朱砂"></button>
+      <button data-color="#1f6fb2" title="群青"></button>
+      <button data-color="#2f8f46" title="松绿"></button>
+      <button data-color="#d98a1c" title="琥珀"></button>
+      <button data-color="#7048e8" title="紫藤"></button>
+    </div>
+    <div class="prop-title">填充 Fill</div>
+    <div class="seg" id="fillSeg">
+      <button data-fill="none" class="active" title="无填充">无</button>
+      <button data-fill="hachure" title="排线">排线</button>
+      <button data-fill="solid" title="色块">色块</button>
+    </div>
+    <div class="prop-title">粗细 Width</div>
+    <div class="seg" id="widthSeg">
+      <button data-width="1.5" title="细"><span class="w w1"></span></button>
+      <button data-width="3" class="active" title="中"><span class="w w2"></span></button>
+      <button data-width="6" title="粗"><span class="w w3"></span></button>
+    </div>
+    <div class="prop-title">手绘感 Sloppiness</div>
+    <div class="seg" id="roughSeg">
+      <button data-rough="0" title="规整">规整</button>
+      <button data-rough="1" class="active" title="手绘">手绘</button>
+      <button data-rough="2.2" title="潦草">潦草</button>
+    </div>
+    <div class="prop-title">字体 Typeface</div>
+    <div class="font-grid" id="fontFamily" role="group" aria-label="字体"></div>
+    <div class="prop-title">字号 Size</div>
+    <div class="seg" id="fontSeg">
+      <button data-font="20">S</button>
+      <button data-font="30" class="active">M</button>
+      <button data-font="48">L</button>
+      <button data-font="72">XL</button>
+    </div>
+  </div>
+
+  <!-- 右上：菜单 -->
+  <div class="topright ui">
+    <button id="openBtn" class="icon-btn" title="打开本地文件 (Ctrl+O)" aria-label="打开本地文件"><svg viewBox="0 0 24 24"><path d="M3 7.5V18a1.5 1.5 0 001.5 1.5h13.2a1.5 1.5 0 001.45-1.1L21.5 11H7.2a1.5 1.5 0 00-1.43 1.05L3.5 19"/><path d="M3 7.5V6a1.5 1.5 0 011.5-1.5h4l2 2.5h6A1.5 1.5 0 0118 8.5V11"/></svg></button>
+    <button id="saveBtn" class="icon-btn" title="保存到本地文件 (Ctrl+S)" aria-label="保存到本地文件"><svg viewBox="0 0 24 24"><path d="M5 4h11l3 3v12a1 1 0 01-1 1H6a1 1 0 01-1-1z"/><path d="M8 4v5h7V4M8 20v-6h8v6"/></svg></button>
+    <button id="menuBtn" class="icon-btn" title="菜单" aria-haspopup="true"><svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
+    <div id="menu" class="menu hidden" role="menu">
+      <button data-menu="open">打开本地文件…<kbd>Ctrl+O</kbd></button>
+      <button data-menu="save">保存到本地文件<kbd>Ctrl+S</kbd></button>
+      <button data-menu="saveas">另存为…<kbd>Ctrl+Shift+S</kbd></button>
+      <hr>
+      <button data-menu="export" class="board-only">导出当前画板 PNG</button>
+      <button data-menu="clear" class="board-only">清空当前画板</button>
+      <button data-menu="reset">恢复默认（清除所有保存）</button>
+      <button data-menu="intro">重播开场动画</button>
+      <button data-menu="help">快捷键与帮助</button>
+    </div>
+  </div>
+
+  <!-- 底部左：缩放 & 撤销 -->
+  <div class="bottomleft ui board-only">
+    <div class="zoom-box">
+      <button id="zoomOut" title="缩小 (-)">−</button>
+      <button id="zoomLabel" title="重置缩放 (0)">100%</button>
+      <button id="zoomIn" title="放大 (+)">+</button>
+    </div>
+    <div class="zoom-box">
+      <button id="undoBtn" title="撤销 (Ctrl+Z)"><svg viewBox="0 0 24 24"><path d="M9 14L4 9l5-5M4 9h10a6 6 0 010 12h-3"/></svg></button>
+      <button id="redoBtn" title="重做 (Ctrl+Shift+Z)"><svg viewBox="0 0 24 24"><path d="M15 14l5-5-5-5M20 9H10a6 6 0 000 12h3"/></svg></button>
+    </div>
+  </div>
+
+  <textarea id="textEditor" spellcheck="false" aria-label="编辑文字"></textarea>
+  <input type="file" id="fileInput" accept=".lanius,.json,application/json" hidden>
+  <div id="dropZone" aria-hidden="true"><div><span class="mini-portal"></span>松手即可打开画板文件</div></div>
+  <div id="toast" role="status" aria-live="polite"></div>
+  <div id="parkourHud" class="parkour-hud" aria-hidden="true">
+    <b>跑酷</b>
+    <span><kbd>A</kbd><kbd>D</kbd> 移动</span>
+    <span><kbd>空格</kbd> 跳跃</span>
+    <span><kbd>E</kbd> 穿越传送门</span>
+    <span>画的线条就是地面</span>
+  </div>
+  <div id="monumentHud" class="monument-hud" aria-hidden="true">
+    <b>纪念碑谷</b>
+    <span class="mvbtns">
+      <button type="button" data-m="cube" class="on" title="放方块（左键）">方块</button>
+      <button type="button" data-m="portal" title="放传送门（左键）">传送门</button>
+      <button type="button" data-m="erase" title="删除（右键/左键）">删除</button>
+    </span>
+    <span class="mvbtns">
+      <button type="button" data-m="select" title="选方块（左键点它，可以选两块；同一处再点一下会翻到被挡住的那块）">选择</button>
+      <button type="button" data-m="up" title="单块换层：换到上层，沿视线方向挪一层，画面位置不变 (PgUp)">换上层</button>
+      <button type="button" data-m="down" title="单块换层：换到下层，沿视线方向挪一层，画面位置不变 (PgDn)">换下层</button>
+      <button type="button" data-m="swap" title="选中两块后，交换它们在画面上的前后遮挡：原来谁压在谁前面，换完就反过来。位置、高度一格不动；而且只影响这两块彼此的前后，它们跟别的方块之间谁压谁一点不变。再按一次换回去">交换上下</button>
+    </span>
+    <span class="mvbtns">
+      <button type="button" data-m="rot-" title="视角左转 (Q)">⟲</button>
+      <button type="button" data-m="rot+" title="视角右转 (E)">⟳</button>
+      <button type="button" data-m="home" title="回到入口 (R)">回到入口</button>
+    </span>
+    <span class="mvkeys"><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> 走路 · <kbd>Q</kbd><kbd>E</kbd> 转视角 · <kbd>F</kbd> 穿越 · <kbd>R</kbd> 回入口 · 中键拖动平移 · <kbd>PgUp</kbd><kbd>PgDn</kbd> 换层</span>
+  </div>
+  <div id="ctxMenu" class="menu ctx hidden" role="menu"></div>
+</div>
+
+<!-- 传送门设置弹窗 -->
+<div id="portalDialog" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="pdTitle">
+  <form class="modal-card" id="portalForm" autocomplete="off">
+    <div class="tape tape-l"></div><div class="tape tape-r"></div>
+    <h3 id="pdTitle">创造传送门 <small>PORTAL GUN · MK II</small></h3>
+    <label class="field">传送门名字
+      <input name="name" maxlength="40" placeholder="例如：C-137 维度">
+    </label>
+    <div class="field-label" id="destLabel">另一侧是什么风格</div>
+    <div class="dest-grid">
+      <label><input type="radio" name="dest" value="paper" checked><span class="dest d-paper"><b>纸张画板</b><em>默认 · 和这里一样</em></span></label>
+      <label><input type="radio" name="dest" value="dots"><span class="dest d-dots"><b>点阵画板</b><em>干净的白色点阵</em></span></label>
+      <label><input type="radio" name="dest" value="dark"><span class="dest d-dark"><b>暗夜画板</b><em>深色维度</em></span></label>
+      <label><input type="radio" name="dest" value="blueprint"><span class="dest d-blue"><b>蓝图画板</b><em>工程蓝图网格</em></span></label>
+      <label><input type="radio" name="dest" value="parkour"><span class="dest d-parkour"><b>跑酷维度</b><em>操控火柴人踩线条</em></span></label>
+      <label><input type="radio" name="dest" value="monument"><span class="dest d-monument"><b>纪念碑谷维度</b><em>3D 方块 · 能走的视错觉</em></span></label>
+      <label><input type="radio" name="dest" value="web"><span class="dest d-web"><b>网页</b><em>嵌入一个页面</em></span></label>
+    </div>
+    <label class="field url-field">网址或本地相对路径
+      <input name="src" placeholder="https://…  或  某个页面.html">
+    </label>
+    <div class="field-label">传送门颜色</div>
+    <div class="hue-row">
+      <label><input type="radio" name="hue" value="105" checked><span style="--h:105">经典绿</span></label>
+      <label><input type="radio" name="hue" value="170"><span style="--h:170">青蓝</span></label>
+      <label><input type="radio" name="hue" value="285"><span style="--h:285">紫</span></label>
+      <label><input type="radio" name="hue" value="35"><span style="--h:35">琥珀</span></label>
+    </div>
+    <div class="actions">
+      <button type="button" data-act="cancel" class="btn ghost">取消</button>
+      <button type="submit" class="btn primary">开启传送门</button>
+    </div>
+  </form>
+</div>
+
+<!-- 帮助 -->
+<div id="helpDialog" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="helpTitle">
+  <div class="modal-card help-card">
+    <div class="tape tape-l"></div>
+    <h3 id="helpTitle">使用说明 <small>FIELD NOTES</small></h3>
+    <ul>
+      <li><b>平移</b>：空格 + 拖动 / 鼠标中键 / 抓手工具 / 触控板双指滑动</li>
+      <li><b>缩放</b>：Ctrl + 滚轮 / 双指捏合 / 左下角按钮</li>
+      <li><b>工具</b>：1 选择 · 2 抓手 · 3 画笔 · 4 矩形 · 5 椭圆 · 6 箭头 · 7 直线 · 8 文字 · 9 橡皮 · 0 传送门</li>
+      <li><b>传送门</b>：单击即穿越；拖动可移动；Alt/Shift + 单击选中后可拖右下角缩放；右键可编辑目的地</li>
+      <li><b>跑酷维度</b>：进去后会有一个火柴人 —— <b>A / D 走路 · 空格跳跃 · 靠近传送门按 E 穿越</b>；你画的线条就是地面，火柴人可以踩在上面（这个维度之外没有火柴人）。进入时火柴人从入口传送门下方的初始平台出现，掉下去会自动回到入口</li>
+      <li><b>纪念碑谷维度</b>：红方块主角，<b>WASD 走路 · Q / E 转动视角 · 走到传送门上按 F 穿越 · R 回到入口</b>；左键在这个维度里就是「放方块 / 放传送门 / 删除 / 选择」（右下方的小工具条切换），右键也能删。只有方块和传送门可以搭。用「选择」可以点中<b>两块</b>方块（同一处再点一下会翻到被挡住的那块），两块会分别标成 <b>A</b> / <b>B</b>；按 <b>交换上下</b> 就把它们在<b>画面上的前后</b>换过来 —— 原来 B 被 A 压着，换完就是 A 被 B 压着，<b>位置、高度一格都不动</b>；而且<b>只影响这两块彼此</b>的前后，它们跟别的方块之间谁压谁<b>一点不变</b>，再按一次就换回去。造不可能三角就靠这个：让本该在后面的那一块画到前面来。走法也跟着画面重算（屏幕上看着能接上，就能走过去）。只选一块时还可以用 <b>换上层 / 换下层</b>（<kbd>PgUp</kbd> / <kbd>PgDn</kbd>）沿视线方向挪一层：<b>画面上的位置一点不动</b>，只是它从「被前面那块盖住」变成「盖住前面那块」。<b>鼠标中键拖动</b>可以上下左右平移视野（滚轮也能平移，按住 Ctrl 滚轮是缩放）。走路<b>只看当前画面</b>：判断两块方块之间有没有路，就看当前角度下这两块的<b>没有阴影的顶面</b>在屏幕上是不是<b>相接</b> —— 相接就能走过去，接不上就走不过去。所以中间隔着一条有阴影的侧面（台阶、墙）、只碰到一个顶点、或者被更靠前的方块挡住看不见的，都走不了；斜角（屏幕上对不上）也永远走不了。走的时候始终贴着亮面走，不会出现抬脚爬高台或者掉下去的动作。转视角（Q / E）时按新角度重新算，角度变了连线也会跟着变</li>
+      <li><b>编辑</b>：Delete 删除 · Ctrl+D 复制 · Ctrl+C / V · Ctrl+Z / Ctrl+Shift+Z · 双击文字修改</li>
+      <li><b>返回</b>：左上角「穿回」或 Backspace（在网页维度中）</li>
+      <li><b>文件</b>：Ctrl+S 保存为本地 .lanius 文件（包含所有维度和传送门）· Ctrl+Shift+S 另存为 · Ctrl+O 打开，也可以把文件直接拖进窗口</li>
+      <li>画板内容同时会自动保存在本浏览器中。</li>
+    </ul>
+    <div class="actions"><button type="button" class="btn primary" data-close>好的</button></div>
+  </div>
+</div>
+
+<!-- 传送门穿越特效层 -->
+<canvas id="warp"></canvas>
+
+<!-- ================= 开场动画：伯劳（古典拼贴） ================= -->
+<div id="intro" aria-label="开场动画">
+  <svg class="defs-only" width="0" height="0" aria-hidden="true">
+    <defs>
+      <filter id="cutout" x="-20%" y="-20%" width="140%" height="140%">
+        <feMorphology in="SourceAlpha" operator="dilate" radius="3.2" result="dil"/>
+        <feTurbulence type="fractalNoise" baseFrequency="0.06" numOctaves="2" seed="4" result="tn"/>
+        <feDisplacementMap in="dil" in2="tn" scale="5" xChannelSelector="R" yChannelSelector="G" result="rough"/>
+        <feFlood flood-color="#f7eedb"/>
+        <feComposite in2="rough" operator="in" result="border"/>
+        <feGaussianBlur in="rough" stdDeviation="3" result="blur"/>
+        <feOffset in="blur" dx="4" dy="6" result="off"/>
+        <feFlood flood-color="#2a1a0c" flood-opacity="0.38"/>
+        <feComposite in2="off" operator="in" result="shadow"/>
+        <feMerge><feMergeNode in="shadow"/><feMergeNode in="border"/><feMergeNode in="SourceGraphic"/></feMerge>
+      </filter>
+      <filter id="torn" x="-5%" y="-5%" width="110%" height="110%">
+        <feTurbulence type="fractalNoise" baseFrequency="0.035" numOctaves="3" seed="9" result="n"/>
+        <feDisplacementMap in="SourceGraphic" in2="n" scale="14" xChannelSelector="R" yChannelSelector="G" result="d"/>
+        <feGaussianBlur in="d" stdDeviation="2" result="b"/>
+        <feOffset in="b" dx="3" dy="5" result="o"/>
+        <feFlood flood-color="#2a1a0c" flood-opacity="0.25"/>
+        <feComposite in2="o" operator="in" result="s"/>
+        <feMerge><feMergeNode in="s"/><feMergeNode in="d"/></feMerge>
+      </filter>
+      <filter id="paperNoise">
+        <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="3" seed="2"/>
+        <feColorMatrix values="0 0 0 0 0.35  0 0 0 0 0.25  0 0 0 0 0.12  0 0 0 0.22 0"/>
+      </filter>
+      <pattern id="hatch" width="4" height="4" patternUnits="userSpaceOnUse" patternTransform="rotate(38)">
+        <line x1="0" y1="0" x2="0" y2="4" stroke="#24160c" stroke-width="0.9" stroke-opacity="0.5"/>
+      </pattern>
+      <pattern id="hatchFine" width="3" height="3" patternUnits="userSpaceOnUse" patternTransform="rotate(-30)">
+        <line x1="0" y1="0" x2="0" y2="3" stroke="#24160c" stroke-width="0.6" stroke-opacity="0.45"/>
+      </pattern>
+      <pattern id="halftone" width="10" height="10" patternUnits="userSpaceOnUse" patternTransform="rotate(20)">
+        <circle cx="5" cy="5" r="2.1" fill="#6e1d10" fill-opacity="0.35"/>
+      </pattern>
+      <pattern id="halftoneInk" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+        <circle cx="4" cy="4" r="1.6" fill="#1d1712" fill-opacity="0.55"/>
+      </pattern>
+      <pattern id="ledger" width="60" height="28" patternUnits="userSpaceOnUse">
+        <line x1="0" y1="27.5" x2="60" y2="27.5" stroke="#6a5236" stroke-opacity="0.16" stroke-width="1"/>
+      </pattern>
+      <radialGradient id="vignette" cx="50%" cy="50%" r="75%">
+        <stop offset="55%" stop-color="#3a2410" stop-opacity="0"/>
+        <stop offset="100%" stop-color="#3a2410" stop-opacity="0.45"/>
+      </radialGradient>
+      <radialGradient id="sunGrad" cx="40%" cy="38%" r="70%">
+        <stop offset="0%" stop-color="#e2683e"/>
+        <stop offset="100%" stop-color="#a8331d"/>
+      </radialGradient>
+    </defs>
+  </svg>
+
+  <!-- L0 纸张 -->
+  <svg class="layer" id="lPaper" viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+    <rect width="1600" height="900" fill="#e7d9bb"/>
+    <rect width="1600" height="900" fill="url(#ledger)"/>
+    <rect width="1600" height="900" filter="url(#paperNoise)"/>
+    <ellipse cx="300" cy="700" rx="260" ry="120" fill="#b08a55" opacity="0.12"/>
+    <ellipse cx="1250" cy="160" rx="220" ry="90" fill="#b08a55" opacity="0.1"/>
+    <line x1="80" y1="0" x2="80" y2="900" stroke="#a5423a" stroke-opacity="0.25" stroke-width="1.5"/>
+  </svg>
+
+  <!-- L1 天空、太阳 -->
+  <svg class="layer" id="lSky" viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+    <g filter="url(#torn)">
+      <polygon points="150,170 1500,90 1520,330 160,420" fill="#9fb3ad"/>
+      <polygon points="150,170 1500,90 1520,330 160,420" fill="url(#hatchFine)" opacity="0.5"/>
+    </g>
+    <g filter="url(#cutout)">
+      <circle cx="640" cy="330" r="175" fill="url(#sunGrad)"/>
+      <circle cx="640" cy="330" r="175" fill="url(#halftone)"/>
+    </g>
+    <g filter="url(#cutout)" opacity="0.95">
+      <circle cx="1210" cy="190" r="62" fill="#efe4c9"/>
+      <circle cx="1210" cy="190" r="62" fill="url(#hatch)" opacity="0.55"/>
+      <circle cx="1228" cy="180" r="50" fill="#efe4c9"/>
+    </g>
+    <rect x="560" y="140" width="110" height="30" fill="#e9dcae" opacity="0.75" transform="rotate(-14 615 155)"/>
+  </svg>
+
+  <!-- L2 山与祥云 -->
+  <svg class="layer" id="lMount" viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+    <g filter="url(#cutout)">
+      <path d="M0 900 L0 560 C60 520 110 470 170 430 C210 400 240 420 270 460 C300 500 330 470 370 430 C420 380 470 400 520 470 C560 520 610 540 660 580 C720 620 760 660 800 720 L820 900 Z" fill="#7a8a7b"/>
+      <path d="M0 900 L0 560 C60 520 110 470 170 430 C210 400 240 420 270 460 C300 500 330 470 370 430 C420 380 470 400 520 470 C560 520 610 540 660 580 C720 620 760 660 800 720 L820 900 Z" fill="url(#hatch)" opacity="0.35"/>
+    </g>
+    <g filter="url(#cutout)">
+      <path d="M-20 900 L-20 700 C40 650 90 610 160 600 C230 590 270 640 330 650 C400 660 450 610 520 620 C600 630 660 700 720 760 C760 800 800 840 860 900 Z" fill="#4e5d52"/>
+      <path d="M-20 900 L-20 700 C40 650 90 610 160 600 C230 590 270 640 330 650 C400 660 450 610 520 620 C600 630 660 700 720 760 C760 800 800 840 860 900 Z" fill="url(#halftoneInk)" opacity="0.4"/>
+    </g>
+    <g filter="url(#cutout)" fill="#c9a256">
+      <path d="M380 540 c0-26 40-30 50-8 c10-24 56-18 52 12 c22-4 34 22 14 32 h-104 c-20-6-18-34 -12-36z"/>
+      <path d="M840 470 c0-20 30-24 38-6 c8-18 42-14 40 9 c16-3 26 17 10 24 h-80 c-15-5-13-26 -8-27z"/>
+    </g>
+  </svg>
+
+  <!-- L3 古典排版 -->
+  <svg class="layer" id="lType" viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+    <g filter="url(#cutout)">
+      <rect x="140" y="120" width="120" height="330" fill="#17120e"/>
+    </g>
+    <text x="200" y="230" text-anchor="middle" font-family="'Noto Serif SC','Songti SC','SimSun',serif" font-weight="900" font-size="96" fill="#efe4c9">伯</text>
+    <text x="200" y="370" text-anchor="middle" font-family="'Noto Serif SC','Songti SC','SimSun',serif" font-weight="900" font-size="96" fill="#efe4c9">劳</text>
+    <text x="200" y="430" text-anchor="middle" font-family="'Cormorant Garamond',Georgia,serif" font-size="15" letter-spacing="4" fill="#c8b48a">MMXXVI</text>
+    <text x="300" y="150" font-family="'Cormorant Garamond',Georgia,serif" font-style="italic" font-size="34" fill="#2a1d12">Lanius cristatus</text>
+    <text x="300" y="180" font-family="'Cormorant Garamond',Georgia,serif" font-size="15" letter-spacing="6" fill="#4a3826">THE BROWN SHRIKE · PL. XXVII</text>
+    <line x1="300" y1="195" x2="620" y2="195" stroke="#2a1d12" stroke-width="1"/>
+    <g filter="url(#cutout)">
+      <rect x="96" y="740" width="640" height="104" fill="#efe4c9" transform="rotate(-2 416 792)"/>
+    </g>
+    <text x="118" y="822" font-family="'Cormorant Garamond',Georgia,serif" font-weight="700" font-size="78" fill="#17120e" transform="rotate(-2 416 792)" letter-spacing="2">THE SHRIKE</text>
+    <text x="560" y="822" font-family="'Cormorant Garamond',Georgia,serif" font-size="14" letter-spacing="3" fill="#7a2a18" transform="rotate(-2 416 792)">FIG. 1 — PERCHED</text>
+    <g transform="translate(985 135) rotate(-12)" opacity="0.8">
+      <circle r="52" fill="none" stroke="#a8331d" stroke-width="3"/>
+      <circle r="42" fill="none" stroke="#a8331d" stroke-width="1"/>
+      <text y="-6" text-anchor="middle" font-family="'Cormorant Garamond',Georgia,serif" font-size="15" letter-spacing="2" fill="#a8331d">N° 0427</text>
+      <text y="16" text-anchor="middle" font-family="'Noto Serif SC',serif" font-size="16" fill="#a8331d">鸣禽目</text>
+    </g>
+    <g stroke="#2a1d12" stroke-width="1" fill="none" opacity="0.7">
+      <path d="M940 600 L870 690 L780 690"/>
+      <circle cx="940" cy="600" r="3" fill="#2a1d12"/>
+    </g>
+    <text x="780" y="710" font-family="'Cormorant Garamond',Georgia,serif" font-style="italic" font-size="18" fill="#2a1d12">a. the butcher-bird</text>
+  </svg>
+
+  <!-- L4 树 -->
+  <svg class="layer" id="lTree" viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+    <g id="treeLeavesBack"></g>
+    <g filter="url(#cutout)">
+      <g id="treeWood" fill="#3d2c1f">
+        <path d="M1400 900 C1390 760 1370 620 1352 500 C1340 420 1360 320 1410 220 C1440 160 1490 90 1560 20 L1640 -20 L1640 900 Z"/>
+        <path d="M1362 468 C1280 440 1180 430 1090 436 C1050 438 1010 440 955 447 C1010 454 1060 454 1100 456 C1190 460 1290 472 1356 516 Z"/>
+        <path d="M1104 440 C1084 410 1062 388 1030 366 C1064 382 1090 402 1116 438 Z"/>
+        <path d="M1206 458 C1186 492 1162 522 1128 544 C1170 524 1196 494 1222 460 Z"/>
+        <path d="M1396 300 C1326 258 1252 228 1168 216 C1250 240 1322 272 1388 334 Z"/>
+      </g>
+      <path d="M1400 900 C1390 760 1370 620 1352 500 C1340 420 1360 320 1410 220 C1440 160 1490 90 1560 20 L1640 -20 L1640 900 Z" fill="url(#hatch)"/>
+    </g>
+    <g id="treeLeaves"></g>
+    <circle id="perch" cx="1030" cy="441" r="1" fill="none"/>
+  </svg>
+
+  <!-- 伯劳 -->
+  <!-- 伯劳（由 intro.js 生成剪纸部件） -->
+  <div id="fallLeaves"></div>
+  <div id="birdWrap">
+    <svg id="bird" viewBox="0 -80 320 280" aria-hidden="true"></svg>
+  </div>
+  <div id="birdHint" aria-hidden="true">
+    <div class="tag"><span class="dot"></span>点一下伯劳 · 让它起飞<em>CLICK THE SHRIKE</em></div>
+  </div>
+
+  <!-- L5 前景 -->
+  <svg class="layer" id="lFront" viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+    <g id="frontLeaves"></g>
+    <rect x="1080" y="790" width="380" height="54" fill="#17120e" transform="rotate(3 1270 817)" filter="url(#cutout)"/>
+    <text x="1270" y="826" text-anchor="middle" font-family="'Cormorant Garamond',Georgia,serif" font-size="20" letter-spacing="8" fill="#efe4c9" transform="rotate(3 1270 817)">ENTER THE BOARD</text>
+    <rect width="1600" height="900" fill="url(#vignette)"/>
+  </svg>
+
+  <div class="intro-grain"></div>
+  <button id="skipIntro" type="button">跳过 SKIP ›</button>
+</div>
+
+<script src="js/portal.js"></script>
+<script src="js/parkour.js"></script>
+<script src="js/monument.js"></script>
+<script src="js/default-board.js"></script>
+<script src="js/board.js"></script>
+<script src="js/intro.js"></script>
+</body>
+</html>
